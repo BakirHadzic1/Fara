@@ -149,7 +149,7 @@
     "note": "Privremeni test mail sendera",
     "price": 50,
     "paid": false,
-    "status": "pending",
+    "status": "deleted",
     "renewalDate": "",
     "endDate": "",
     "cancelToken": "b71c2b3cbd313606a2007b199786f7bc",
