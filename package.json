@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "check": "node --check fara-doo.js && node --check files/fara-doo.js && node --check api/bookings.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.16"
+  }
+}

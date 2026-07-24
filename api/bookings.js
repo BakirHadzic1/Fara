@@ -4,6 +4,11 @@ const BRANCH = process.env.GITHUB_BRANCH || 'main';
 const FILE_PATH = process.env.BOOKINGS_FILE || 'data/bookings.json';
 const ADMIN_PIN = process.env.ADMIN_PIN || '2026';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fara.termini@gmail.com';
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
+const SMTP_USER = process.env.SMTP_USER || ADMIN_EMAIL;
+const SMTP_PASS = process.env.SMTP_PASS || '';
+const SMTP_TO = process.env.SMTP_TO || ADMIN_EMAIL;
 
 function send(res, status, payload) {
   res.statusCode = status;
@@ -107,6 +112,83 @@ function cleanText(value) {
   return String(value || '').trim().slice(0, 500);
 }
 
+function escapeHtml(value) {
+  return String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function mailEnabled() {
+  return Boolean(SMTP_USER && SMTP_PASS && SMTP_TO);
+}
+
+function bookingMailHtml(booking) {
+  const type = booking.type === 'monthly' ? 'Stalni mjesečni termin' : 'Jedan termin';
+  const category = booking.category === 'school' ? 'Školarci / akademije / klubovi' : 'Standardni termin';
+  return `
+    <div style="font-family:Arial,sans-serif;color:#181b1f;line-height:1.5">
+      <h2 style="margin:0 0 12px;color:#df1f2d">Nova rezervacija termina</h2>
+      <p><strong>Termin:</strong> ${escapeHtml(formatDate(booking.date))} u ${escapeHtml(booking.time)}</p>
+      <p><strong>Cijena:</strong> ${escapeHtml(booking.price)} KM</p>
+      <p><strong>Tip:</strong> ${escapeHtml(type)}</p>
+      <p><strong>Kategorija:</strong> ${escapeHtml(category)}</p>
+      <hr style="border:none;border-top:1px solid #ddd;margin:18px 0">
+      <p><strong>Ime:</strong> ${escapeHtml(booking.name)}</p>
+      <p><strong>Telefon:</strong> ${escapeHtml(booking.phone)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(booking.email || 'Nije upisan')}</p>
+      <p><strong>Napomena:</strong> ${escapeHtml(booking.note || 'Nema napomene')}</p>
+      <p style="margin-top:18px"><a href="https://www.fara.ba/admin.html">Otvori admin panel</a></p>
+    </div>
+  `;
+}
+
+function bookingMailText(booking) {
+  const type = booking.type === 'monthly' ? 'Stalni mjesečni termin' : 'Jedan termin';
+  const category = booking.category === 'school' ? 'Školarci / akademije / klubovi' : 'Standardni termin';
+  return [
+    'Nova rezervacija termina',
+    '',
+    `Termin: ${formatDate(booking.date)} u ${booking.time}`,
+    `Cijena: ${booking.price} KM`,
+    `Tip: ${type}`,
+    `Kategorija: ${category}`,
+    '',
+    `Ime: ${booking.name}`,
+    `Telefon: ${booking.phone}`,
+    `Email: ${booking.email || 'Nije upisan'}`,
+    `Napomena: ${booking.note || 'Nema napomene'}`,
+    '',
+    'Admin panel: https://www.fara.ba/admin.html'
+  ].join('\n');
+}
+
+async function sendBookingEmail(booking) {
+  if (!mailEnabled()) return false;
+  const nodemailer = require('nodemailer');
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS
+    }
+  });
+
+  await transporter.sendMail({
+    from: `"FARA rezervacije" <${SMTP_USER}>`,
+    to: SMTP_TO,
+    replyTo: booking.email || undefined,
+    subject: `Nova rezervacija: ${booking.date} u ${booking.time}`,
+    text: bookingMailText(booking),
+    html: bookingMailHtml(booking)
+  });
+  return true;
+}
+
 async function mutateBookings(mutator) {
   let current = await readBookingsFile();
   let next = await mutator(current.bookings);
@@ -184,7 +266,14 @@ module.exports = async function handler(req, res) {
         return { bookings, result: booking };
       });
 
-      return send(res, 201, { booking: result });
+      let emailSent = false;
+      try {
+        emailSent = await sendBookingEmail(result);
+      } catch (mailError) {
+        console.error('Booking email failed:', mailError.message);
+      }
+
+      return send(res, 201, { booking: result, emailSent });
     }
 
     if (req.method === 'PATCH') {
