@@ -49,7 +49,7 @@
     "note": "",
     "price": 50,
     "paid": false,
-    "status": "cancelled",
+    "status": "deleted",
     "renewalDate": "",
     "adminEmail": "fara.termini@gmail.com"
   },
