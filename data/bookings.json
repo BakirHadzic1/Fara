@@ -13,7 +13,7 @@
     "note": "",
     "price": 50,
     "paid": false,
-    "status": "pending",
+    "status": "cancelled",
     "renewalDate": "",
     "adminEmail": "fara.termini@gmail.com"
   }
