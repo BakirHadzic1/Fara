@@ -375,9 +375,8 @@ function initBookingModal() {
       <div class="own-booking">
         <div>
           <strong>${formatDate(item.date)} · ${item.time}</strong>
-          <small>${bookingTypeLabel(item.type)}${item.type === 'monthly' ? ` · zauzeto ${monthsLabel(item.months)} · ${(item.price || 200)} KM/mj.` : ` · ${item.price || bookingPrice(item.type, 'standard', item.time)} KM`}</small>
+          <small>${bookingTypeLabel(item.type)}${item.type === 'monthly' ? ` · zauzeto ${monthsLabel(item.months)} · ${(item.price || 200)} KM/mj.` : ` · ${item.price || bookingPrice(item.type, 'standard', item.time)} KM`} · za izmjenu nazovite 062 290 622</small>
         </div>
-        <button type="button" class="mini-btn" data-own-cancel="${item.id}" data-token="${item.cancelToken}">Otkaži</button>
       </div>
     `).join('');
   }
@@ -428,24 +427,6 @@ function initBookingModal() {
     message.classList.remove('error');
     updateSummary();
   });
-  ownBookingsList.addEventListener('click', async event => {
-    const button = event.target.closest('[data-own-cancel]');
-    if (!button) return;
-    button.disabled = true;
-    try {
-      await cancelOwnBooking(button.dataset.ownCancel, button.dataset.token);
-      saveOwnBookings(ownBookings().map(item => item.id === button.dataset.ownCancel ? { ...item, status: 'cancelled' } : item));
-      await refreshBookings();
-      message.textContent = 'Rezervacija je otkazana.';
-      message.classList.remove('error');
-    } catch (error) {
-      message.textContent = error.message || 'Otkazivanje nije uspjelo.';
-      message.classList.add('error');
-    } finally {
-      button.disabled = false;
-    }
-  });
-
   form.addEventListener('submit', async event => {
     event.preventDefault();
     updateSummary();
@@ -482,7 +463,7 @@ function initBookingModal() {
       dateInput.value = today;
       setWeekAround(today);
       updateSummary();
-      message.textContent = 'Rezervacija je zabilježena. Hvala!';
+      message.textContent = 'Rezervacija je zabilježena. Za izmjenu ili otkazivanje nazovite 062 290 622.';
       message.classList.remove('error');
     } catch (error) {
       await refreshBookings();

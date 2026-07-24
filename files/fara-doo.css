@@ -861,9 +861,34 @@ button{font-family:inherit;cursor:pointer;}
   background:#f5f7f3;
   padding:16px;
 }
+.booking-policy{
+  border:1px solid rgba(223,31,45,.22);
+  background:#fff7f4;
+  padding:16px;
+  color:var(--ink-soft);
+}
+.booking-policy strong{
+  display:block;
+  margin-bottom:6px;
+  color:var(--ink);
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.booking-policy p{
+  font-size:13px;
+  line-height:1.55;
+}
+.booking-policy a{
+  color:var(--red);
+  font-weight:900;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
 .own-booking{
   display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-columns:minmax(0,1fr);
   gap:12px;
   align-items:center;
   padding:12px 0;

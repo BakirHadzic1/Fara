@@ -9,6 +9,9 @@ const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
 const SMTP_USER = process.env.SMTP_USER || ADMIN_EMAIL;
 const SMTP_PASS = process.env.SMTP_PASS || '';
 const SMTP_TO = process.env.SMTP_TO || ADMIN_EMAIL;
+const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const MAIL_FROM = process.env.MAIL_FROM || ADMIN_EMAIL;
 
 function send(res, status, payload) {
   res.statusCode = status;
@@ -187,7 +190,7 @@ function escapeHtml(value) {
 }
 
 function mailEnabled() {
-  return Boolean(SMTP_USER && SMTP_PASS && SMTP_TO);
+  return Boolean((BREVO_API_KEY || RESEND_API_KEY || (SMTP_USER && SMTP_PASS)) && SMTP_TO);
 }
 
 function bookingMailHtml(booking) {
@@ -236,6 +239,48 @@ function bookingMailText(booking) {
 
 async function sendBookingEmail(booking) {
   if (!mailEnabled()) return false;
+
+  if (BREVO_API_KEY) {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': BREVO_API_KEY
+      },
+      body: JSON.stringify({
+        sender: { name: 'FARA rezervacije', email: MAIL_FROM },
+        to: [{ email: SMTP_TO }],
+        replyTo: booking.email ? { email: booking.email, name: booking.name } : undefined,
+        subject: `Nova rezervacija: ${booking.date} u ${booking.time}`,
+        htmlContent: bookingMailHtml(booking),
+        textContent: bookingMailText(booking)
+      })
+    });
+    if (!response.ok) throw new Error(`Brevo mail failed: ${response.status}`);
+    return true;
+  }
+
+  if (RESEND_API_KEY) {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: `FARA rezervacije <${MAIL_FROM}>`,
+        to: [SMTP_TO],
+        reply_to: booking.email || undefined,
+        subject: `Nova rezervacija: ${booking.date} u ${booking.time}`,
+        html: bookingMailHtml(booking),
+        text: bookingMailText(booking)
+      })
+    });
+    if (!response.ok) throw new Error(`Resend mail failed: ${response.status}`);
+    return true;
+  }
+
   const nodemailer = require('nodemailer');
   const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
@@ -351,20 +396,18 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
+      if (!isAdmin(req)) return send(res, 401, { error: 'Pogrešan PIN.' });
       const body = await readBody(req);
       const id = cleanText(body.id);
       const action = cleanText(body.action);
-      const cancelToken = cleanText(body.cancelToken);
       if (!id) return send(res, 400, { error: 'Nedostaje ID rezervacije.' });
-      if (!isAdmin(req) && !(action === 'cancel' && cancelToken)) return send(res, 401, { error: 'Nedostaje dozvola za ovu akciju.' });
 
       const result = await mutateBookings(async bookings => {
         let updated = null;
         const next = bookings.map(item => {
           if (item.id !== id) return item;
-          if (!isAdmin(req) && item.cancelToken !== cancelToken) return item;
           if (action === 'paid') updated = { ...item, paid: !item.paid, status: item.status === 'cancelled' ? 'pending' : item.status };
-          if (action === 'cancel') updated = { ...item, status: isAdmin(req) && item.status === 'cancelled' ? 'pending' : 'cancelled' };
+          if (action === 'cancel') updated = { ...item, status: item.status === 'cancelled' ? 'pending' : 'cancelled' };
           if (action === 'delete') updated = { ...item, status: 'deleted' };
           return updated || item;
         });
