@@ -16,5 +16,23 @@
     "status": "cancelled",
     "renewalDate": "",
     "adminEmail": "fara.termini@gmail.com"
+  },
+  {
+    "id": "fara-1784885548158",
+    "createdAt": "2026-07-24T09:32:28.158Z",
+    "date": "2026-07-25",
+    "day": "subota",
+    "time": "19:00",
+    "type": "single",
+    "category": "standard",
+    "name": "nermin",
+    "phone": "062290622",
+    "email": "",
+    "note": "",
+    "price": 50,
+    "paid": false,
+    "status": "pending",
+    "renewalDate": "",
+    "adminEmail": "fara.termini@gmail.com"
   }
 ]
