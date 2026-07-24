@@ -128,7 +128,7 @@
     "note": "Privremeni test maila",
     "price": 50,
     "paid": false,
-    "status": "pending",
+    "status": "deleted",
     "renewalDate": "",
     "endDate": "",
     "cancelToken": "2080cbe871f69193785de53ab4f4dfce",
