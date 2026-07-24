@@ -85,7 +85,7 @@
     "email": "",
     "note": "Test unos",
     "price": 50,
-    "paid": false,
+    "paid": true,
     "status": "pending",
     "renewalDate": "",
     "endDate": "",
