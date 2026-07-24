@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'faraSportBookings';
-const ADMIN_PIN = '2026';
+const API_URL = '/api/bookings';
 
 function formatDate(dateString) {
   if (!dateString) return '';
@@ -7,7 +7,7 @@ function formatDate(dateString) {
   return date.toLocaleDateString('bs-BA', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-function getBookings() {
+function localBookings() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   } catch {
@@ -15,8 +15,70 @@ function getBookings() {
   }
 }
 
-function saveBookings(bookings) {
+function saveLocalBookings(bookings) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+}
+
+function useOnlineApi() {
+  return location.protocol === 'http:' || location.protocol === 'https:';
+}
+
+async function requestBookings(options = {}) {
+  if (!useOnlineApi()) return { bookings: localBookings(), local: true };
+  const response = await fetch(API_URL, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Greška pri učitavanju rezervacija.');
+  return data;
+}
+
+async function loadBookings(adminPin = '') {
+  try {
+    const data = await requestBookings(adminPin ? { headers: { 'X-Admin-Pin': adminPin } } : {});
+    return data.bookings || [];
+  } catch {
+    return localBookings();
+  }
+}
+
+async function createBooking(booking) {
+  if (!useOnlineApi()) {
+    const bookings = localBookings();
+    const taken = bookings.some(item => item.date === booking.date && item.time === booking.time && item.status !== 'cancelled' && item.status !== 'deleted');
+    if (taken) throw new Error('Ovaj termin je već rezervisan.');
+    bookings.push(booking);
+    saveLocalBookings(bookings);
+    return booking;
+  }
+  const data = await requestBookings({
+    method: 'POST',
+    body: JSON.stringify(booking)
+  });
+  return data.booking;
+}
+
+async function updateBookingOnline(id, action, adminPin) {
+  if (!useOnlineApi()) {
+    const bookings = localBookings().map(item => {
+      if (item.id !== id) return item;
+      if (action === 'paid') return { ...item, paid: !item.paid, status: item.status === 'cancelled' ? 'pending' : item.status };
+      if (action === 'cancel') return { ...item, status: item.status === 'cancelled' ? 'pending' : 'cancelled' };
+      if (action === 'delete') return { ...item, status: 'deleted' };
+      return item;
+    });
+    saveLocalBookings(bookings);
+    return;
+  }
+  await requestBookings({
+    method: 'PATCH',
+    headers: { 'X-Admin-Pin': adminPin },
+    body: JSON.stringify({ id, action })
+  });
 }
 
 function bookingPrice(type, category, time) {
@@ -89,6 +151,7 @@ function initBookingModal() {
   const message = document.getElementById('bookingMessage');
   if (!modal || !form || !dateInput || !timeSelect || !typeSelect || !categorySelect || !summary || !message) return;
 
+  let cachedBookings = [];
   const today = new Date().toISOString().slice(0, 10);
   dateInput.min = today;
   dateInput.value = today;
@@ -102,7 +165,7 @@ function initBookingModal() {
   }
 
   function isSlotTaken(date, time) {
-    return getBookings().some(item => item.date === date && item.time === time && item.status !== 'cancelled');
+    return cachedBookings.some(item => item.date === date && item.time === time && item.status !== 'cancelled' && item.status !== 'deleted');
   }
 
   function updateSummary() {
@@ -117,11 +180,18 @@ function initBookingModal() {
     message.classList.toggle('error', taken);
   }
 
-  function openModal() {
+  async function refreshBookings() {
+    cachedBookings = await loadBookings();
+    updateSummary();
+  }
+
+  async function openModal() {
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modal-open');
-    updateSummary();
+    message.textContent = 'Učitavam raspored...';
+    message.classList.remove('error');
+    await refreshBookings();
     dateInput.focus();
   }
 
@@ -140,7 +210,7 @@ function initBookingModal() {
   });
   [dateInput, timeSelect, typeSelect, categorySelect].forEach(input => input.addEventListener('change', updateSummary));
 
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
     event.preventDefault();
     updateSummary();
     if (isSlotTaken(dateInput.value, timeSelect.value)) return;
@@ -164,17 +234,24 @@ function initBookingModal() {
       renewalDate: typeSelect.value === 'monthly' ? nextRenewalDate(dateInput.value) : ''
     };
 
-    const bookings = getBookings();
-    bookings.push(booking);
-    saveBookings(bookings);
-    form.reset();
-    dateInput.value = today;
-    updateSummary();
-    message.textContent = 'Rezervacija je zabilježena. Hvala!';
-    message.classList.remove('error');
+    try {
+      message.textContent = 'Šaljem rezervaciju...';
+      message.classList.remove('error');
+      const saved = await createBooking(booking);
+      cachedBookings.push(saved);
+      form.reset();
+      dateInput.value = today;
+      updateSummary();
+      message.textContent = 'Rezervacija je zabilježena. Hvala!';
+      message.classList.remove('error');
+    } catch (error) {
+      await refreshBookings();
+      message.textContent = error.message || 'Rezervacija nije poslana.';
+      message.classList.add('error');
+    }
   });
 
-  updateSummary();
+  refreshBookings();
 }
 
 function initAdminPanel() {
@@ -191,28 +268,8 @@ function initAdminPanel() {
   const adminContent = document.getElementById('adminContent');
   if (!tableBody || !empty || !dateFilter || !statusFilter || !searchFilter) return;
 
-  function isUnlocked() {
-    return sessionStorage.getItem('faraAdminPin') === ADMIN_PIN;
-  }
-
-  function unlockPanel() {
-    if (loginPanel) loginPanel.hidden = true;
-    if (adminContent) adminContent.hidden = false;
-    render();
-  }
-
-  if (loginForm) {
-    loginForm.addEventListener('submit', event => {
-      event.preventDefault();
-      const value = document.getElementById('adminPin')?.value || '';
-      if (value !== ADMIN_PIN) {
-        if (loginError) loginError.textContent = 'Pogrešan PIN.';
-        return;
-      }
-      sessionStorage.setItem('faraAdminPin', value);
-      unlockPanel();
-    });
-  }
+  let adminPin = sessionStorage.getItem('faraAdminPin') || '';
+  let adminBookings = [];
 
   function inCurrentWeek(dateString) {
     const date = new Date(`${dateString}T12:00:00`);
@@ -233,16 +290,15 @@ function initAdminPanel() {
   }
 
   function paidTotal(predicate) {
-    return getBookings()
-      .filter(item => item.paid && item.status !== 'cancelled' && predicate(item.date))
+    return adminBookings
+      .filter(item => item.paid && item.status !== 'cancelled' && item.status !== 'deleted' && predicate(item.date))
       .reduce((total, item) => total + Number(item.price || 0), 0);
   }
 
   function updateStats() {
     const today = new Date().toISOString().slice(0, 10);
-    const bookings = getBookings();
-    const todayBookings = bookings.filter(item => item.date === today && item.status !== 'cancelled').length;
-    const unpaid = bookings.filter(item => !item.paid && item.status !== 'cancelled').length;
+    const todayBookings = adminBookings.filter(item => item.date === today && item.status !== 'cancelled' && item.status !== 'deleted').length;
+    const unpaid = adminBookings.filter(item => !item.paid && item.status !== 'cancelled' && item.status !== 'deleted').length;
     document.getElementById('statToday').textContent = `${paidTotal(date => date === today)} KM`;
     document.getElementById('statWeek').textContent = `${paidTotal(inCurrentWeek)} KM`;
     document.getElementById('statMonth').textContent = `${paidTotal(inCurrentMonth)} KM`;
@@ -253,7 +309,8 @@ function initAdminPanel() {
     const date = dateFilter.value;
     const status = statusFilter.value;
     const search = searchFilter.value.trim().toLowerCase();
-    return getBookings()
+    return adminBookings
+      .filter(item => item.status !== 'deleted')
       .filter(item => !date || item.date === date)
       .filter(item => status === 'all' || (status === 'paid' ? item.paid : item.status === status))
       .filter(item => {
@@ -290,25 +347,49 @@ function initAdminPanel() {
     updateStats();
   }
 
-  function updateBooking(id, updater) {
-    const bookings = getBookings().map(item => item.id === id ? updater(item) : item);
-    saveBookings(bookings);
+  async function refreshAdmin() {
+    adminBookings = await loadBookings(adminPin);
     render();
   }
 
-  tableBody.addEventListener('click', event => {
+  async function unlockPanel(pin) {
+    adminPin = pin;
+    const data = await requestBookings({ headers: { 'X-Admin-Pin': adminPin } });
+    if (!data.admin) throw new Error('Pogrešan PIN.');
+    adminBookings = data.bookings || [];
+    sessionStorage.setItem('faraAdminPin', adminPin);
+    if (loginPanel) loginPanel.hidden = true;
+    if (adminContent) adminContent.hidden = false;
+    render();
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const value = document.getElementById('adminPin')?.value || '';
+      try {
+        if (loginError) loginError.textContent = 'Provjeravam...';
+        await unlockPanel(value);
+        if (loginError) loginError.textContent = '';
+      } catch (error) {
+        if (loginError) loginError.textContent = error.message || 'Pogrešan PIN.';
+      }
+    });
+  }
+
+  tableBody.addEventListener('click', async event => {
     const button = event.target.closest('button[data-action]');
     if (!button) return;
     const id = button.dataset.id;
-    if (button.dataset.action === 'paid') {
-      updateBooking(id, item => ({ ...item, paid: !item.paid, status: item.status === 'cancelled' ? 'pending' : item.status }));
-    }
-    if (button.dataset.action === 'cancel') {
-      updateBooking(id, item => ({ ...item, status: item.status === 'cancelled' ? 'pending' : 'cancelled' }));
-    }
-    if (button.dataset.action === 'delete') {
-      saveBookings(getBookings().filter(item => item.id !== id));
-      render();
+    const action = button.dataset.action;
+    button.disabled = true;
+    try {
+      await updateBookingOnline(id, action, adminPin);
+      await refreshAdmin();
+    } catch (error) {
+      alert(error.message || 'Akcija nije uspjela.');
+    } finally {
+      button.disabled = false;
     }
   });
 
@@ -316,7 +397,7 @@ function initAdminPanel() {
 
   if (exportButton) {
     exportButton.addEventListener('click', () => {
-      const blob = new Blob([JSON.stringify(getBookings(), null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(adminBookings, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -327,33 +408,32 @@ function initAdminPanel() {
   }
 
   if (seedButton) {
-    seedButton.addEventListener('click', () => {
+    seedButton.addEventListener('click', async () => {
       const today = new Date().toISOString().slice(0, 10);
-      const bookings = getBookings();
-      bookings.push({
-        id: `fara-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        date: today,
-        day: formatDate(today).split(',')[0],
-        time: '20:00',
-        type: 'single',
-        category: 'standard',
-        name: 'Primjer rezervacije',
-        phone: '061 182 484',
-        email: '',
-        note: 'Test unos',
-        price: 50,
-        paid: false,
-        status: 'pending',
-        renewalDate: ''
-      });
-      saveBookings(bookings);
-      render();
+      try {
+        await createBooking({
+          date: today,
+          time: '20:00',
+          type: 'single',
+          category: 'standard',
+          name: 'Primjer rezervacije',
+          phone: '061 182 484',
+          email: '',
+          note: 'Test unos'
+        });
+        await refreshAdmin();
+      } catch (error) {
+        alert(error.message || 'Test unos nije uspio.');
+      }
     });
   }
 
-  if (isUnlocked()) {
-    unlockPanel();
+  if (adminPin) {
+    unlockPanel(adminPin).catch(() => {
+      sessionStorage.removeItem('faraAdminPin');
+      if (loginPanel) loginPanel.hidden = false;
+      if (adminContent) adminContent.hidden = true;
+    });
   } else {
     if (loginPanel) loginPanel.hidden = false;
     if (adminContent) adminContent.hidden = true;
