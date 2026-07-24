@@ -299,7 +299,7 @@ async function sendBookingEmail(booking) {
   });
 
   await transporter.sendMail({
-    from: `"FARA rezervacije" <${SMTP_USER}>`,
+    from: `"FARA rezervacije" <${MAIL_FROM}>`,
     to: SMTP_TO,
     replyTo: booking.email || undefined,
     subject: `Nova rezervacija: ${booking.date} u ${booking.time}`,
