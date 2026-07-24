@@ -122,9 +122,9 @@ function monthsLabel(value) {
   return `${months} mjeseci`;
 }
 
-function bookingPrice(type, category, time, months = 1) {
+function bookingPrice(type, category, time) {
   const hour = Number((time || '0').split(':')[0]);
-  if (type === 'monthly') return 200 * bookingMonths(months);
+  if (type === 'monthly') return 200;
   if (category === 'school' && hour >= 8 && hour < 16) return 30;
   return 50;
 }
@@ -332,14 +332,15 @@ function initBookingModal() {
   function updateSummary() {
     if (!selectedInVisibleWeek()) setWeekAround(dateInput.value);
     const months = bookingMonths(monthsSelect.value);
-    const price = bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value, months);
+    const price = bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value);
     const requested = { date: dateInput.value, time: timeSelect.value, type: typeSelect.value, months, endDate: addMonths(dateInput.value, months) };
     const taken = cachedBookings.some(item => bookingsConflict(item, requested));
-    const period = typeSelect.value === 'monthly' ? ` · ${monthsLabel(months)} · do ${formatDate(addMonths(dateInput.value, months))}` : '';
+    const period = typeSelect.value === 'monthly' ? ` · zauzeto ${monthsLabel(months)} · plaćanje mjesečno · do ${formatDate(addMonths(dateInput.value, months))}` : '';
+    const priceLabel = typeSelect.value === 'monthly' ? `${price} KM / mjesec` : `${price} KM`;
     monthsWrap.hidden = typeSelect.value !== 'monthly';
     summary.innerHTML = `
       <span>${formatDate(dateInput.value)} · ${timeSelect.value}</span>
-      <strong>${price} KM</strong>
+      <strong>${priceLabel}</strong>
       <small>${bookingTypeLabel(typeSelect.value)}${period} · ${categoryLabel(categorySelect.value)}${taken ? ' · termin je već zauzet' : ''}</small>
     `;
     message.textContent = taken ? 'Ovaj termin je već rezervisan. Odaberite drugi datum ili sat.' : '';
@@ -374,7 +375,7 @@ function initBookingModal() {
       <div class="own-booking">
         <div>
           <strong>${formatDate(item.date)} · ${item.time}</strong>
-          <small>${bookingTypeLabel(item.type)}${item.type === 'monthly' ? ` · ${monthsLabel(item.months)}` : ''} · ${item.price || bookingPrice(item.type, 'standard', item.time, item.months)} KM</small>
+          <small>${bookingTypeLabel(item.type)}${item.type === 'monthly' ? ` · zauzeto ${monthsLabel(item.months)} · ${(item.price || 200)} KM/mj.` : ` · ${item.price || bookingPrice(item.type, 'standard', item.time)} KM`}</small>
         </div>
         <button type="button" class="mini-btn" data-own-cancel="${item.id}" data-token="${item.cancelToken}">Otkaži</button>
       </div>
@@ -464,7 +465,7 @@ function initBookingModal() {
       email: String(data.get('email') || '').trim(),
       note: String(data.get('note') || '').trim(),
       months: typeSelect.value === 'monthly' ? bookingMonths(monthsSelect.value) : 1,
-      price: bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value, monthsSelect.value),
+      price: bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value),
       paid: false,
       status: 'pending',
       renewalDate: typeSelect.value === 'monthly' ? nextRenewalDate(dateInput.value) : '',
@@ -570,8 +571,8 @@ function initAdminPanel() {
       tr.innerHTML = `
         <td><strong>${formatDate(item.date)}</strong><small>${item.time} · ${item.day || ''}</small></td>
         <td><strong>${item.name}</strong><small>${item.phone}${item.email ? ` · ${item.email}` : ''}</small></td>
-        <td><strong>${bookingTypeLabel(item.type)}</strong><small>${categoryLabel(item.category)}${item.type === 'monthly' ? ` · ${monthsLabel(item.months)} · do ${formatDate(item.endDate || addMonths(item.date, item.months || 1))}` : ''}</small></td>
-        <td><strong>${item.price} KM</strong><small>${item.note || 'Bez napomene'}</small></td>
+        <td><strong>${bookingTypeLabel(item.type)}</strong><small>${categoryLabel(item.category)}${item.type === 'monthly' ? ` · zauzeto ${monthsLabel(item.months)} · do ${formatDate(item.endDate || addMonths(item.date, item.months || 1))}` : ''}</small></td>
+        <td><strong>${item.price} KM${item.type === 'monthly' ? '/mj.' : ''}</strong><small>${item.note || 'Bez napomene'}</small></td>
         <td><span class="status-pill ${statusClass}">${statusText}</span></td>
         <td>
           <div class="admin-actions">

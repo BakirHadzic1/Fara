@@ -75,9 +75,9 @@ async function writeBookingsFile(bookings, sha) {
   });
 }
 
-function bookingPrice(type, category, time, months = 1) {
+function bookingPrice(type, category, time) {
   const hour = Number(String(time || '0').split(':')[0]);
-  if (type === 'monthly') return 200 * bookingMonths(months);
+  if (type === 'monthly') return 200;
   if (category === 'school' && hour >= 8 && hour < 16) return 30;
   return 50;
 }
@@ -199,7 +199,7 @@ function bookingMailHtml(booking) {
       <h2 style="margin:0 0 12px;color:#df1f2d">Nova rezervacija termina</h2>
       <p><strong>Termin:</strong> ${escapeHtml(formatDate(booking.date))} u ${escapeHtml(booking.time)}</p>
       ${period}
-      <p><strong>Cijena:</strong> ${escapeHtml(booking.price)} KM</p>
+      <p><strong>Cijena:</strong> ${escapeHtml(booking.price)} KM mjesečno</p>
       <p><strong>Tip:</strong> ${escapeHtml(type)}</p>
       <p><strong>Kategorija:</strong> ${escapeHtml(category)}</p>
       <hr style="border:none;border-top:1px solid #ddd;margin:18px 0">
@@ -221,7 +221,7 @@ function bookingMailText(booking) {
     '',
     `Termin: ${formatDate(booking.date)} u ${booking.time}`,
     ...period,
-    `Cijena: ${booking.price} KM`,
+    `Cijena: ${booking.price} KM mjesečno`,
     `Tip: ${type}`,
     `Kategorija: ${category}`,
     '',
@@ -328,7 +328,7 @@ module.exports = async function handler(req, res) {
           phone,
           email,
           note,
-          price: bookingPrice(type, category, time, months),
+          price: bookingPrice(type, category, time),
           paid: false,
           status: 'pending',
           renewalDate: type === 'monthly' ? nextRenewalDate(date) : '',
