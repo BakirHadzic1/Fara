@@ -128,7 +128,7 @@
     "note": "",
     "price": 50,
     "paid": false,
-    "status": "cancelled",
+    "status": "deleted",
     "renewalDate": "",
     "endDate": "",
     "cancelToken": "738ba1b005733a60a8e6f5ab6a6d4e29",
