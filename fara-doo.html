@@ -243,7 +243,7 @@
           <div class="label">Mjesečno<small>fiksni termin svake sedmice</small></div>
           <div class="amount">200 KM</div>
         </div>
-        <a href="#kontakt" class="btn btn-primary cta">Rezervišite termin</a>
+        <button type="button" class="btn btn-primary cta booking-trigger">Rezervišite termin</button>
       </div>
 
       <div class="price-card">
@@ -271,7 +271,7 @@
       </div>
       <div class="sport-info-card">
         <h3>Teretana</h3>
-        <p>Članarine su zamišljene jednostavno: dnevni ulaz, studentska opcija i redovna mjesečna članarina.</p>
+        <p>Članarine su zamišljene jednostavno: dnevni ulaz, mjesečna opcija do 16h i redovna mjesečna članarina.</p>
       </div>
       <div class="sport-info-card">
         <h3>Kafić i igraonica</h3>
@@ -393,6 +393,61 @@
   </div>
 </section>
 
+<div class="booking-modal" id="bookingModal" aria-hidden="true">
+  <div class="booking-backdrop" data-booking-close></div>
+  <div class="booking-dialog" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
+    <button class="booking-close" type="button" aria-label="Zatvori" data-booking-close>×</button>
+    <div class="booking-shell">
+      <div class="booking-copy">
+        <span class="section-eyebrow">Rezervacija sale</span>
+        <h2 id="bookingTitle">Odaberite termin</h2>
+        <p>Izaberite datum, sat i tip rezervacije. Nakon slanja, vaš termin ostaje zabilježen u rasporedu i admin panelu.</p>
+        <div class="booking-summary" id="bookingSummary">
+          <span>Termin</span>
+          <strong>50 KM</strong>
+          <small>Standardna rezervacija za 60 minuta</small>
+        </div>
+      </div>
+      <form class="booking-form" id="bookingForm">
+        <label>Datum
+          <input type="date" id="bookingDate" name="date" required>
+        </label>
+        <label>Vrijeme
+          <select id="bookingTime" name="time" required></select>
+        </label>
+        <label>Tip termina
+          <select id="bookingType" name="type" required>
+            <option value="single">Jedan termin</option>
+            <option value="monthly">Stalni mjesečni termin</option>
+          </select>
+        </label>
+        <label>Kategorija
+          <select id="bookingCategory" name="category" required>
+            <option value="standard">Standardni termin</option>
+            <option value="school">Školarci, akademije ili klubovi 08–16h</option>
+          </select>
+        </label>
+        <div class="booking-grid-2">
+          <label>Ime i prezime
+            <input type="text" name="name" autocomplete="name" required>
+          </label>
+          <label>Telefon
+            <input type="tel" name="phone" autocomplete="tel" required>
+          </label>
+        </div>
+        <label>Email
+          <input type="email" name="email" autocomplete="email" placeholder="za podsjetnik o produženju">
+        </label>
+        <label>Napomena
+          <textarea name="note" rows="3" placeholder="npr. mali fudbal, stalna grupa, poseban zahtjev"></textarea>
+        </label>
+        <p class="booking-message" id="bookingMessage" aria-live="polite"></p>
+        <button type="submit" class="btn btn-primary">Pošalji rezervaciju</button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <footer class="footer">
   <div class="wrap">
     <div class="footer-row" style="border-top:none;margin-top:0;padding-top:0;">
@@ -401,7 +456,7 @@
     </div>
     <div class="footer-row">
       <span>© <span id="year"></span> Fara d.o.o. Sva prava zadržana.</span>
-      <span>Travnik, Bosna i Hercegovina</span>
+      <span><a href="admin.html">Admin panel</a> · Travnik, Bosna i Hercegovina</span>
     </div>
   </div>
 </footer>

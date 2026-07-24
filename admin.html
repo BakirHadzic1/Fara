@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FARA Sport Centar — Admin panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fara-doo.css">
+</head>
+<body class="admin-page">
+
+<header class="site-header scrolled" id="siteHeader">
+  <a href="index.html#top" class="logo">
+    <span class="logo-text">FARA<span>.</span></span>
+  </a>
+  <nav class="nav" id="mainNav">
+    <a href="index.html#sport" data-close>Sport Centar</a>
+    <a href="index.html#kontakt" data-close>Kontakt</a>
+    <a href="index.html" data-close>Stranica</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Meni">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main class="admin-main">
+  <div class="admin-hero">
+    <div>
+      <span class="section-eyebrow">Admin panel</span>
+      <h1>Rezervacije i naplata</h1>
+      <p>Pregled termina, statusa plaćanja i zarade. Podaci su trenutno probna lokalna verzija; kad spojimo bazu, panel će raditi za sve uređaje.</p>
+    </div>
+    <a href="index.html#sport" class="btn btn-primary">Nazad na stranicu</a>
+  </div>
+
+  <section class="admin-panel admin-login" id="adminLogin">
+    <span class="section-eyebrow">Pristup</span>
+    <h2>Unesite admin PIN</h2>
+    <form class="admin-filter" id="adminLoginForm">
+      <label>PIN
+        <input type="password" id="adminPin" autocomplete="current-password" required>
+      </label>
+      <button class="btn btn-primary" type="submit">Otvori panel</button>
+    </form>
+    <p class="booking-message error" id="adminLoginError"></p>
+  </section>
+
+  <div id="adminContent" hidden>
+    <section class="admin-stats" aria-label="Statistika zarade">
+      <div class="admin-stat">
+        <span>Danas plaćeno</span>
+        <strong id="statToday">0 KM</strong>
+      </div>
+      <div class="admin-stat">
+        <span>Sedmica plaćeno</span>
+        <strong id="statWeek">0 KM</strong>
+      </div>
+      <div class="admin-stat">
+        <span>Mjesec plaćeno</span>
+        <strong id="statMonth">0 KM</strong>
+      </div>
+      <div class="admin-stat">
+        <span>Danas / neplaćeno</span>
+        <strong id="statOpen">0 / 0</strong>
+      </div>
+    </section>
+
+    <section class="admin-panel">
+      <div class="admin-toolbar">
+        <div class="admin-filter">
+          <label>Datum
+            <input type="date" id="adminDateFilter">
+          </label>
+          <label>Status
+            <select id="adminStatusFilter">
+              <option value="all">Svi</option>
+              <option value="pending">Nije plaćeno</option>
+              <option value="paid">Plaćeno</option>
+              <option value="cancelled">Otkazano</option>
+            </select>
+          </label>
+          <label>Pretraga
+            <input type="search" id="adminSearchFilter" placeholder="ime, telefon, email">
+          </label>
+        </div>
+        <div class="admin-actions">
+          <button class="btn btn-primary" type="button" id="exportBookings">Export</button>
+          <button class="btn btn-ghost" type="button" id="seedDemoBooking">Test unos</button>
+        </div>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Termin</th>
+              <th>Korisnik</th>
+              <th>Tip</th>
+              <th>Iznos</th>
+              <th>Status</th>
+              <th>Akcije</th>
+            </tr>
+          </thead>
+          <tbody id="adminBookings"></tbody>
+        </table>
+      </div>
+      <p class="empty-state" id="adminEmpty">Još nema rezervacija.</p>
+    </section>
+  </div>
+</main>
+
+<script src="fara-doo.js"></script>
+</body>
+</html>

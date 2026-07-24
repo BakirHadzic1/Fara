@@ -580,6 +580,298 @@ button{font-family:inherit;cursor:pointer;}
 }
 .sport-info-card p{color:#cfd5d8;}
 
+/* Booking */
+.booking-modal{
+  position:fixed;
+  inset:0;
+  z-index:220;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+.booking-modal.open{display:flex;}
+.booking-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(10,12,14,.78);
+  backdrop-filter:blur(10px);
+}
+.booking-dialog{
+  position:relative;
+  z-index:1;
+  width:min(960px,100%);
+  max-height:min(92vh,860px);
+  overflow:auto;
+  background:var(--paper-strong);
+  color:var(--ink);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 34px 90px rgba(0,0,0,.36);
+}
+.booking-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  z-index:3;
+  width:42px;
+  height:42px;
+  border:1px solid var(--line);
+  border-radius:50%;
+  background:#fff;
+  color:var(--ink);
+  font-size:28px;
+  line-height:1;
+}
+.booking-shell{
+  display:grid;
+  grid-template-columns:minmax(260px,.82fr) minmax(0,1.18fr);
+  gap:1px;
+  background:var(--line);
+}
+.booking-copy,.booking-form{
+  background:var(--paper-strong);
+  padding:34px;
+}
+.booking-copy h2{
+  font-family:var(--font-display);
+  font-size:clamp(36px,5vw,62px);
+  line-height:.92;
+  text-transform:uppercase;
+}
+.booking-copy p{
+  margin-top:18px;
+  color:var(--ink-soft);
+}
+.booking-summary{
+  margin-top:28px;
+  padding:22px;
+  background:#15191d;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.12);
+}
+.booking-summary span,.booking-summary small{
+  display:block;
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#cfd5d8;
+}
+.booking-summary strong{
+  display:block;
+  margin:8px 0;
+  font-family:var(--font-display);
+  font-size:54px;
+  line-height:1;
+  color:#49f176;
+}
+.booking-form{
+  display:grid;
+  gap:16px;
+}
+.booking-form label,.admin-filter label{
+  display:grid;
+  gap:7px;
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-weight:800;
+  color:var(--ink-soft);
+}
+.booking-form input,.booking-form select,.booking-form textarea,
+.admin-filter input,.admin-filter select{
+  width:100%;
+  min-height:46px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--ink);
+  padding:0 12px;
+  font:500 15px var(--font-body);
+  letter-spacing:0;
+  text-transform:none;
+  outline:none;
+}
+.booking-form textarea{
+  min-height:92px;
+  padding:12px;
+  resize:vertical;
+}
+.booking-form input:focus,.booking-form select:focus,.booking-form textarea:focus,
+.admin-filter input:focus,.admin-filter select:focus{
+  border-color:var(--red);
+  box-shadow:0 0 0 3px rgba(223,31,45,.12);
+}
+.booking-grid-2{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.booking-message{
+  min-height:22px;
+  color:var(--green-dark);
+  font-weight:800;
+}
+.booking-message.error{color:var(--red);}
+body.modal-open{overflow:hidden;}
+
+/* Admin */
+.admin-page{
+  background:#15191d;
+  color:#f7f4ef;
+}
+.admin-main{
+  padding:118px 28px 70px;
+  max-width:1240px;
+  margin:0 auto;
+}
+.admin-hero{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:24px;
+  margin-bottom:28px;
+}
+.admin-hero h1{
+  font-family:var(--font-display);
+  font-size:clamp(48px,7vw,88px);
+  line-height:.9;
+  text-transform:uppercase;
+}
+.admin-hero p{
+  color:#cfd5d8;
+  max-width:620px;
+  margin-top:14px;
+}
+.admin-stats{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:18px;
+}
+.admin-stat,.admin-panel{
+  background:rgba(255,255,255,.07);
+  border:1px solid var(--line-light);
+  box-shadow:0 18px 60px rgba(0,0,0,.14);
+}
+.admin-stat{
+  padding:22px;
+}
+.admin-stat span{
+  display:block;
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#aeb7bc;
+}
+.admin-stat strong{
+  display:block;
+  margin-top:8px;
+  font-family:var(--font-display);
+  font-size:38px;
+  line-height:1;
+  color:#49f176;
+}
+.admin-panel{
+  padding:22px;
+}
+.admin-login{
+  max-width:560px;
+}
+.admin-login h2{
+  font-family:var(--font-display);
+  font-size:42px;
+  line-height:1;
+  text-transform:uppercase;
+  margin-bottom:18px;
+}
+.admin-toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.admin-filter{
+  display:flex;
+  gap:12px;
+  align-items:flex-end;
+  flex-wrap:wrap;
+}
+.admin-filter label{
+  color:#cfd5d8;
+  min-width:170px;
+}
+.admin-filter input,.admin-filter select{
+  background:#101214;
+  border-color:var(--line-light);
+  color:#fff;
+}
+.admin-table-wrap{overflow:auto;}
+.admin-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:980px;
+}
+.admin-table th,.admin-table td{
+  border-top:1px solid var(--line-light);
+  padding:13px 10px;
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+.admin-table th{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:#aeb7bc;
+}
+.admin-table strong{display:block;color:#fff;}
+.admin-table small{display:block;color:#aeb7bc;margin-top:2px;}
+.admin-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.mini-btn{
+  min-height:34px;
+  border:1px solid var(--line-light);
+  background:#101214;
+  color:#fff;
+  padding:0 10px;
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-weight:800;
+}
+.mini-btn.paid{border-color:rgba(73,241,118,.42);color:#49f176;}
+.mini-btn.danger{border-color:rgba(223,31,45,.42);color:#ff6b73;}
+.status-pill{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:0 9px;
+  border:1px solid var(--line-light);
+  border-radius:999px;
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.status-pill.paid{color:#49f176;border-color:rgba(73,241,118,.42);}
+.status-pill.pending{color:#ffd36a;border-color:rgba(255,211,106,.42);}
+.status-pill.cancelled{color:#ff6b73;border-color:rgba(255,107,115,.42);}
+.empty-state{
+  padding:34px;
+  text-align:center;
+  color:#cfd5d8;
+  border-top:1px solid var(--line-light);
+}
+
 /* CTA */
 .cta-band{
   padding:76px 0;
@@ -691,6 +983,7 @@ button{font-family:inherit;cursor:pointer;}
   .trust-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .company-facts{grid-template-columns:repeat(2,minmax(0,1fr));}
   .sport-info-grid{grid-template-columns:1fr;}
+  .admin-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
   .cta-inner{align-items:flex-start;flex-direction:column;}
 }
 
@@ -726,6 +1019,10 @@ button{font-family:inherit;cursor:pointer;}
   .pricing-grid{grid-template-columns:1fr;}
   .process-panel{grid-template-columns:1fr;padding:24px;}
   .process-list li{grid-template-columns:1fr;gap:6px;}
+  .booking-shell{grid-template-columns:1fr;}
+  .booking-copy,.booking-form{padding:26px;}
+  .admin-main{padding:96px 20px 54px;}
+  .admin-hero{align-items:flex-start;flex-direction:column;}
   .map-placeholder{align-items:flex-start;flex-direction:column;}
 }
 
@@ -751,4 +1048,7 @@ button{font-family:inherit;cursor:pointer;}
   .cta-actions,.cta-actions .btn,.contact-actions,.contact-actions .btn{width:100%;}
   .price-row{align-items:flex-start;flex-direction:column;gap:6px;}
   .price-row .amount{font-size:20px;}
+  .booking-modal{padding:12px;}
+  .booking-grid-2,.admin-stats{grid-template-columns:1fr;}
+  .admin-filter,.admin-filter label,.admin-toolbar .btn{width:100%;}
 }
