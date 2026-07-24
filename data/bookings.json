@@ -133,5 +133,26 @@
     "endDate": "",
     "cancelToken": "738ba1b005733a60a8e6f5ab6a6d4e29",
     "adminEmail": "fara.termini@gmail.com"
+  },
+  {
+    "id": "fara-1784913739929",
+    "createdAt": "2026-07-24T17:22:19.929Z",
+    "date": "2099-01-07",
+    "day": "srijeda",
+    "time": "13:00",
+    "type": "single",
+    "months": 1,
+    "category": "standard",
+    "name": "Test mail sender",
+    "phone": "062 290 622",
+    "email": "",
+    "note": "Privremeni test mail sendera",
+    "price": 50,
+    "paid": false,
+    "status": "pending",
+    "renewalDate": "",
+    "endDate": "",
+    "cancelToken": "b71c2b3cbd313606a2007b199786f7bc",
+    "adminEmail": "fara.termini@gmail.com"
   }
 ]
