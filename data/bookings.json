@@ -13,7 +13,7 @@
     "note": "privremeni test",
     "price": 30,
     "paid": false,
-    "status": "pending",
+    "status": "deleted",
     "renewalDate": "",
     "adminEmail": "fara.termini@gmail.com"
   }
