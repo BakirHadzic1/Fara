@@ -70,5 +70,26 @@
     "status": "deleted",
     "renewalDate": "2026-08-24",
     "adminEmail": "fara.termini@gmail.com"
+  },
+  {
+    "id": "fara-1784895590242",
+    "createdAt": "2026-07-24T12:19:50.242Z",
+    "date": "2026-07-24",
+    "day": "petak",
+    "time": "20:00",
+    "type": "single",
+    "months": 1,
+    "category": "standard",
+    "name": "Primjer rezervacije",
+    "phone": "061 182 484",
+    "email": "",
+    "note": "Test unos",
+    "price": 50,
+    "paid": false,
+    "status": "pending",
+    "renewalDate": "",
+    "endDate": "",
+    "cancelToken": "4f39ebe52ac8375981abe3a353f8d1f5",
+    "adminEmail": "fara.termini@gmail.com"
   }
 ]
