@@ -112,5 +112,26 @@
     "endDate": "",
     "cancelToken": "d0f248cb36fcf2bbbf2abcd1980494a2",
     "adminEmail": "fara.termini@gmail.com"
+  },
+  {
+    "id": "fara-1784913402196",
+    "createdAt": "2026-07-24T17:16:42.196Z",
+    "date": "2099-01-06",
+    "day": "utorak",
+    "time": "13:00",
+    "type": "single",
+    "months": 1,
+    "category": "standard",
+    "name": "Test mail notifikacije",
+    "phone": "062 290 622",
+    "email": "",
+    "note": "Privremeni test maila",
+    "price": 50,
+    "paid": false,
+    "status": "pending",
+    "renewalDate": "",
+    "endDate": "",
+    "cancelToken": "2080cbe871f69193785de53ab4f4dfce",
+    "adminEmail": "fara.termini@gmail.com"
   }
 ]
