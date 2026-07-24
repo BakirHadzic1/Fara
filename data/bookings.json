@@ -67,7 +67,7 @@
     "note": "",
     "price": 200,
     "paid": false,
-    "status": "cancelled",
+    "status": "deleted",
     "renewalDate": "2026-08-24",
     "adminEmail": "fara.termini@gmail.com"
   }
