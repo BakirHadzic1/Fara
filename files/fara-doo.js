@@ -193,7 +193,7 @@ function initBookingModal() {
   dateInput.min = today;
   dateInput.value = today;
 
-  for (let hour = 8; hour <= 21; hour += 1) {
+  for (let hour = 8; hour <= 22; hour += 1) {
     const value = `${String(hour).padStart(2, '0')}:00`;
     timeSlots.push(value);
     const option = document.createElement('option');
