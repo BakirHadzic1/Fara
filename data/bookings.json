@@ -133,26 +133,5 @@
     "endDate": "",
     "cancelToken": "738ba1b005733a60a8e6f5ab6a6d4e29",
     "adminEmail": "fara.termini@gmail.com"
-  },
-  {
-    "id": "fara-1784914083749",
-    "createdAt": "2026-07-24T17:28:03.749Z",
-    "date": "2099-01-08",
-    "day": "četvrtak",
-    "time": "13:00",
-    "type": "single",
-    "months": 1,
-    "category": "standard",
-    "name": "Test mail verified sender",
-    "phone": "062 290 622",
-    "email": "",
-    "note": "Privremeni test verified sender",
-    "price": 50,
-    "paid": false,
-    "status": "deleted",
-    "renewalDate": "",
-    "endDate": "",
-    "cancelToken": "7de9d4f6972ea6580bf8e4137fa523fa",
-    "adminEmail": "fara.termini@gmail.com"
   }
 ]
