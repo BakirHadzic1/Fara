@@ -85,6 +85,12 @@ function bookingPrice(type, category, time) {
   return 50;
 }
 
+function isSlotClosed(dateString, time) {
+  const date = toLocalDate(dateString);
+  const hour = Number(String(time || '0').split(':')[0]);
+  return date.getDay() === 0 && (hour < 12 || hour >= 22);
+}
+
 function formatDate(dateString) {
   const date = new Date(`${dateString}T12:00:00`);
   return date.toLocaleDateString('bs-BA', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -349,6 +355,9 @@ module.exports = async function handler(req, res) {
 
       if (!date || !time || !name || !phone) {
         return send(res, 400, { error: 'Datum, vrijeme, ime i telefon su obavezni.' });
+      }
+      if (isSlotClosed(date, time)) {
+        return send(res, 400, { error: 'Nedjeljom su dostupni termini od 12:00 do 22:00.' });
       }
 
       const result = await mutateBookings(async bookings => {

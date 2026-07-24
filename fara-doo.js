@@ -204,6 +204,12 @@ function shortDate(date) {
   return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}.`;
 }
 
+function isSlotClosed(dateString, time) {
+  const date = toLocalDate(dateString);
+  const hour = Number((time || '0').split(':')[0]);
+  return date.getDay() === 0 && (hour < 12 || hour >= 22);
+}
+
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -306,10 +312,11 @@ function initBookingModal() {
       const cells = days.map(day => {
         const dateValue = toDateInputValue(day);
         const past = dateValue < today;
+        const closed = isSlotClosed(dateValue, time);
         const busy = isSlotTaken(dateValue, time);
         const selected = dateInput.value === dateValue && timeSelect.value === time;
-        const state = past ? 'past' : busy ? 'busy' : 'free';
-        const label = past ? 'Prošlo' : busy ? 'Zauzeto' : 'Slobodno';
+        const state = past ? 'past' : closed ? 'closed' : busy ? 'busy' : 'free';
+        const label = past ? 'Prošlo' : closed ? 'Zatvoreno' : busy ? 'Zauzeto' : 'Slobodno';
         return `
           <td>
             <button type="button" class="slot-btn ${state}${selected ? ' selected' : ''}" data-date="${dateValue}" data-time="${time}" ${state === 'free' ? '' : 'disabled'}>
@@ -334,6 +341,7 @@ function initBookingModal() {
     const months = bookingMonths(monthsSelect.value);
     const price = bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value);
     const requested = { date: dateInput.value, time: timeSelect.value, type: typeSelect.value, months, endDate: addMonths(dateInput.value, months) };
+    const closed = isSlotClosed(dateInput.value, timeSelect.value);
     const taken = cachedBookings.some(item => bookingsConflict(item, requested));
     const period = typeSelect.value === 'monthly' ? ` · zauzeto ${monthsLabel(months)} · plaćanje mjesečno · do ${formatDate(addMonths(dateInput.value, months))}` : '';
     const priceLabel = typeSelect.value === 'monthly' ? `${price} KM / mjesec` : `${price} KM`;
@@ -343,8 +351,8 @@ function initBookingModal() {
       <strong>${priceLabel}</strong>
       <small>${bookingTypeLabel(typeSelect.value)}${period} · ${categoryLabel(categorySelect.value)}${taken ? ' · termin je već zauzet' : ''}</small>
     `;
-    message.textContent = taken ? 'Ovaj termin je već rezervisan. Odaberite drugi datum ili sat.' : '';
-    message.classList.toggle('error', taken);
+    message.textContent = closed ? 'Nedjeljom su dostupni termini od 12:00 do 22:00.' : taken ? 'Ovaj termin je već rezervisan. Odaberite drugi datum ili sat.' : '';
+    message.classList.toggle('error', closed || taken);
     renderWeekSchedule();
     renderOwnBookings();
   }
@@ -430,6 +438,7 @@ function initBookingModal() {
   form.addEventListener('submit', async event => {
     event.preventDefault();
     updateSummary();
+    if (isSlotClosed(dateInput.value, timeSelect.value)) return;
     if (isSlotTaken(dateInput.value, timeSelect.value)) return;
 
     const data = new FormData(form);

@@ -776,6 +776,7 @@ button{font-family:inherit;cursor:pointer;}
 }
 .schedule-legend .free{background:var(--green);}
 .schedule-legend .busy{background:var(--red);}
+.schedule-legend .closed{background:#6f767b;}
 .schedule-legend .past{background:#b9c0c3;}
 .week-table-wrap{
   overflow:auto;
@@ -842,6 +843,11 @@ button{font-family:inherit;cursor:pointer;}
 }
 .slot-btn.busy{
   background:linear-gradient(135deg,var(--red),var(--red-dark));
+  cursor:not-allowed;
+}
+.slot-btn.closed{
+  background:#6f767b;
+  color:#e8ecee;
   cursor:not-allowed;
 }
 .slot-btn.past{
