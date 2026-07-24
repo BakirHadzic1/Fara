@@ -149,7 +149,7 @@
     "note": "Privremeni test verified sender",
     "price": 50,
     "paid": false,
-    "status": "pending",
+    "status": "deleted",
     "renewalDate": "",
     "endDate": "",
     "cancelToken": "7de9d4f6972ea6580bf8e4137fa523fa",
