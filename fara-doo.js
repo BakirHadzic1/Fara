@@ -1,10 +1,12 @@
 const STORAGE_KEY = 'faraSportBookings';
 const API_URL = '/api/bookings';
+const DAY_NAMES = ['nedjelja', 'ponedjeljak', 'utorak', 'srijeda', 'četvrtak', 'petak', 'subota'];
+const DAY_SHORT = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub'];
 
 function formatDate(dateString) {
   if (!dateString) return '';
   const date = new Date(`${dateString}T12:00:00`);
-  return date.toLocaleDateString('bs-BA', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+  return `${DAY_NAMES[date.getDay()]}, ${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}.`;
 }
 
 function localBookings() {
@@ -102,6 +104,35 @@ function nextRenewalDate(dateString) {
   return date.toISOString().slice(0, 10);
 }
 
+function toLocalDate(dateString) {
+  return new Date(`${dateString}T12:00:00`);
+}
+
+function toDateInputValue(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function startOfWeek(date) {
+  const copy = new Date(date);
+  const day = copy.getDay() || 7;
+  copy.setDate(copy.getDate() - day + 1);
+  return copy;
+}
+
+function addDays(date, days) {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + days);
+  return copy;
+}
+
+function sameOrAfter(dateString, compareString) {
+  return toLocalDate(dateString).getTime() >= toLocalDate(compareString).getTime();
+}
+
+function shortDate(date) {
+  return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}.`;
+}
+
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -149,15 +180,22 @@ function initBookingModal() {
   const categorySelect = document.getElementById('bookingCategory');
   const summary = document.getElementById('bookingSummary');
   const message = document.getElementById('bookingMessage');
-  if (!modal || !form || !dateInput || !timeSelect || !typeSelect || !categorySelect || !summary || !message) return;
+  const weekGrid = document.getElementById('bookingWeekGrid');
+  const weekLabel = document.getElementById('bookingWeekLabel');
+  const prevWeek = document.getElementById('prevWeek');
+  const nextWeek = document.getElementById('nextWeek');
+  if (!modal || !form || !dateInput || !timeSelect || !typeSelect || !categorySelect || !summary || !message || !weekGrid || !weekLabel || !prevWeek || !nextWeek) return;
 
   let cachedBookings = [];
   const today = new Date().toISOString().slice(0, 10);
+  const timeSlots = [];
+  let currentWeekStart = startOfWeek(toLocalDate(today));
   dateInput.min = today;
   dateInput.value = today;
 
   for (let hour = 8; hour <= 21; hour += 1) {
     const value = `${String(hour).padStart(2, '0')}:00`;
+    timeSlots.push(value);
     const option = document.createElement('option');
     option.value = value;
     option.textContent = `${value} - ${String(hour + 1).padStart(2, '0')}:00`;
@@ -165,10 +203,64 @@ function initBookingModal() {
   }
 
   function isSlotTaken(date, time) {
-    return cachedBookings.some(item => item.date === date && item.time === time && item.status !== 'cancelled' && item.status !== 'deleted');
+    return cachedBookings.some(item => {
+      if (item.time !== time || item.status === 'cancelled' || item.status === 'deleted') return false;
+      if (item.date === date) return true;
+      if (item.type !== 'monthly' || !sameOrAfter(date, item.date)) return false;
+      return toLocalDate(date).getDay() === toLocalDate(item.date).getDay();
+    });
+  }
+
+  function selectedInVisibleWeek() {
+    const selected = toLocalDate(dateInput.value);
+    const start = currentWeekStart.getTime();
+    const end = addDays(currentWeekStart, 6).getTime();
+    return selected.getTime() >= start && selected.getTime() <= end;
+  }
+
+  function setWeekAround(dateString) {
+    currentWeekStart = startOfWeek(toLocalDate(dateString));
+  }
+
+  function renderWeekSchedule() {
+    const days = Array.from({ length: 7 }, (_, index) => addDays(currentWeekStart, index));
+    weekLabel.textContent = `${shortDate(days[0])} - ${shortDate(days[6])}`;
+
+    const head = days.map(day => {
+      const value = toDateInputValue(day);
+      const label = `${DAY_SHORT[day.getDay()]} ${String(day.getDate()).padStart(2, '0')}.${String(day.getMonth() + 1).padStart(2, '0')}.`;
+      return `<th>${label}${value === today ? '<small>Danas</small>' : ''}</th>`;
+    }).join('');
+
+    const rows = timeSlots.map(time => {
+      const cells = days.map(day => {
+        const dateValue = toDateInputValue(day);
+        const past = dateValue < today;
+        const busy = isSlotTaken(dateValue, time);
+        const selected = dateInput.value === dateValue && timeSelect.value === time;
+        const state = past ? 'past' : busy ? 'busy' : 'free';
+        const label = past ? 'Prošlo' : busy ? 'Zauzeto' : 'Slobodno';
+        return `
+          <td>
+            <button type="button" class="slot-btn ${state}${selected ? ' selected' : ''}" data-date="${dateValue}" data-time="${time}" ${state === 'free' ? '' : 'disabled'}>
+              ${label}
+            </button>
+          </td>
+        `;
+      }).join('');
+      return `<tr><td>${time}</td>${cells}</tr>`;
+    }).join('');
+
+    weekGrid.innerHTML = `
+      <table class="week-table">
+        <thead><tr><th>Sat</th>${head}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
   }
 
   function updateSummary() {
+    if (!selectedInVisibleWeek()) setWeekAround(dateInput.value);
     const price = bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value);
     const taken = isSlotTaken(dateInput.value, timeSelect.value);
     summary.innerHTML = `
@@ -178,6 +270,7 @@ function initBookingModal() {
     `;
     message.textContent = taken ? 'Ovaj termin je već rezervisan. Odaberite drugi datum ili sat.' : '';
     message.classList.toggle('error', taken);
+    renderWeekSchedule();
   }
 
   async function refreshBookings() {
@@ -189,10 +282,10 @@ function initBookingModal() {
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modal-open');
+    modal.querySelector('.booking-dialog').scrollTop = 0;
     message.textContent = 'Učitavam raspored...';
     message.classList.remove('error');
     await refreshBookings();
-    dateInput.focus();
   }
 
   function closeModal() {
@@ -209,6 +302,23 @@ function initBookingModal() {
     if (event.key === 'Escape' && modal.classList.contains('open')) closeModal();
   });
   [dateInput, timeSelect, typeSelect, categorySelect].forEach(input => input.addEventListener('change', updateSummary));
+  prevWeek.addEventListener('click', () => {
+    currentWeekStart = addDays(currentWeekStart, -7);
+    renderWeekSchedule();
+  });
+  nextWeek.addEventListener('click', () => {
+    currentWeekStart = addDays(currentWeekStart, 7);
+    renderWeekSchedule();
+  });
+  weekGrid.addEventListener('click', event => {
+    const button = event.target.closest('.slot-btn.free');
+    if (!button) return;
+    dateInput.value = button.dataset.date;
+    timeSelect.value = button.dataset.time;
+    message.textContent = 'Termin je slobodan. Popunite podatke i pošaljite rezervaciju.';
+    message.classList.remove('error');
+    updateSummary();
+  });
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -241,6 +351,7 @@ function initBookingModal() {
       cachedBookings.push(saved);
       form.reset();
       dateInput.value = today;
+      setWeekAround(today);
       updateSummary();
       message.textContent = 'Rezervacija je zabilježena. Hvala!';
       message.classList.remove('error');

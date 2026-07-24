@@ -600,7 +600,7 @@ button{font-family:inherit;cursor:pointer;}
 .booking-dialog{
   position:relative;
   z-index:1;
-  width:min(960px,100%);
+  width:min(1160px,100%);
   max-height:min(92vh,860px);
   overflow:auto;
   background:var(--paper-strong);
@@ -668,6 +668,7 @@ button{font-family:inherit;cursor:pointer;}
 .booking-form{
   display:grid;
   gap:16px;
+  min-width:0;
 }
 .booking-form label,.admin-filter label{
   display:grid;
@@ -706,6 +707,153 @@ button{font-family:inherit;cursor:pointer;}
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:14px;
+}
+.week-schedule{
+  border:1px solid var(--line);
+  background:#f5f7f3;
+  padding:16px;
+  min-width:0;
+}
+.week-schedule-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:12px;
+}
+.week-schedule-head strong{
+  display:block;
+  margin-top:3px;
+  color:var(--ink);
+  font-family:var(--font-display);
+  font-size:28px;
+  line-height:1;
+  text-transform:uppercase;
+}
+.mini-label{
+  display:block;
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--red);
+  font-weight:900;
+}
+.week-actions{display:flex;gap:8px;}
+.week-nav{
+  width:40px;
+  height:40px;
+  border:1px solid var(--line);
+  border-radius:50%;
+  background:#fff;
+  color:var(--ink);
+  font-size:28px;
+  line-height:1;
+  font-weight:800;
+  transition:background .18s ease,color .18s ease,transform .18s ease;
+}
+.week-nav:hover{
+  background:var(--ink);
+  color:#fff;
+  transform:translateY(-1px);
+}
+.schedule-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-bottom:12px;
+  color:var(--ink-soft);
+  font-size:12px;
+  font-weight:800;
+}
+.schedule-legend span{display:inline-flex;align-items:center;gap:6px;}
+.schedule-legend i{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  display:inline-block;
+}
+.schedule-legend .free{background:var(--green);}
+.schedule-legend .busy{background:var(--red);}
+.schedule-legend .past{background:#b9c0c3;}
+.week-table-wrap{
+  overflow:auto;
+  max-height:480px;
+  min-width:0;
+  border:1px solid var(--line);
+  background:#fff;
+}
+.week-table{
+  width:100%;
+  min-width:720px;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+.week-table th,.week-table td{
+  border:1px solid rgba(24,27,31,.1);
+  text-align:center;
+}
+.week-table th{
+  position:sticky;
+  top:0;
+  z-index:2;
+  padding:9px 6px;
+  background:#15191d;
+  color:#fff;
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.week-table th:first-child{
+  width:74px;
+  background:#252b31;
+}
+.week-table th small{
+  display:block;
+  margin-top:3px;
+  color:#49f176;
+  font-size:9px;
+  letter-spacing:.12em;
+}
+.week-table td:first-child{
+  background:#f0eee9;
+  color:var(--ink-soft);
+  font-family:var(--font-mono);
+  font-size:12px;
+  font-weight:900;
+}
+.slot-btn{
+  width:100%;
+  min-height:36px;
+  border:0;
+  border-radius:0;
+  color:#fff;
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-weight:900;
+  transition:filter .18s ease,transform .18s ease,box-shadow .18s ease;
+}
+.slot-btn.free{
+  background:linear-gradient(135deg,var(--green),var(--green-dark));
+}
+.slot-btn.busy{
+  background:linear-gradient(135deg,var(--red),var(--red-dark));
+  cursor:not-allowed;
+}
+.slot-btn.past{
+  background:#b9c0c3;
+  color:#596168;
+  cursor:not-allowed;
+}
+.slot-btn.free:hover{
+  filter:saturate(1.14);
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.7);
+}
+.slot-btn.selected{
+  box-shadow:inset 0 0 0 3px #fff,0 0 0 2px var(--ink);
 }
 .booking-message{
   min-height:22px;

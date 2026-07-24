@@ -409,6 +409,24 @@
         </div>
       </div>
       <form class="booking-form" id="bookingForm">
+        <div class="week-schedule" aria-label="Sedmični raspored termina">
+          <div class="week-schedule-head">
+            <div>
+              <span class="mini-label">Sedmični raspored</span>
+              <strong id="bookingWeekLabel">Učitavanje...</strong>
+            </div>
+            <div class="week-actions">
+              <button type="button" class="week-nav" id="prevWeek" aria-label="Prethodna sedmica">‹</button>
+              <button type="button" class="week-nav" id="nextWeek" aria-label="Sljedeća sedmica">›</button>
+            </div>
+          </div>
+          <div class="schedule-legend">
+            <span><i class="free"></i>Slobodno</span>
+            <span><i class="busy"></i>Zauzeto</span>
+            <span><i class="past"></i>Prošlo</span>
+          </div>
+          <div class="week-table-wrap" id="bookingWeekGrid"></div>
+        </div>
         <label>Datum
           <input type="date" id="bookingDate" name="date" required>
         </label>
