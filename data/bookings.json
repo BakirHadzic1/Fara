@@ -48,7 +48,7 @@
     "email": "",
     "note": "",
     "price": 50,
-    "paid": true,
+    "paid": false,
     "status": "pending",
     "renewalDate": "",
     "adminEmail": "fara.termini@gmail.com"
