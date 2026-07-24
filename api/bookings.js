@@ -75,9 +75,9 @@ async function writeBookingsFile(bookings, sha) {
   });
 }
 
-function bookingPrice(type, category, time) {
+function bookingPrice(type, category, time, months = 1) {
   const hour = Number(String(time || '0').split(':')[0]);
-  if (type === 'monthly') return 200;
+  if (type === 'monthly') return 200 * bookingMonths(months);
   if (category === 'school' && hour >= 8 && hour < 16) return 30;
   return 50;
 }
@@ -93,6 +93,65 @@ function nextRenewalDate(dateString) {
   return date.toISOString().slice(0, 10);
 }
 
+function toLocalDate(dateString) {
+  return new Date(`${dateString}T12:00:00`);
+}
+
+function toDateValue(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function addDays(date, days) {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + days);
+  return copy;
+}
+
+function addMonths(dateString, months) {
+  const date = toLocalDate(dateString);
+  date.setMonth(date.getMonth() + months);
+  return toDateValue(date);
+}
+
+function bookingMonths(value) {
+  const months = Number(value || 1);
+  if (!Number.isFinite(months)) return 1;
+  return Math.min(12, Math.max(1, Math.round(months)));
+}
+
+function monthsLabel(value) {
+  const months = bookingMonths(value);
+  if (months === 1) return '1 mjesec';
+  if (months >= 2 && months <= 4) return `${months} mjeseca`;
+  return `${months} mjeseci`;
+}
+
+function bookingEndDate(booking) {
+  return booking.type === 'monthly' ? (booking.endDate || addMonths(booking.date, booking.months || 1)) : booking.date;
+}
+
+function bookingOccurrenceDates(booking) {
+  if (booking.type !== 'monthly') return [booking.date];
+  const endDate = bookingEndDate(booking);
+  const dates = [];
+  for (let date = toLocalDate(booking.date); toDateValue(date) < endDate; date = addDays(date, 7)) {
+    dates.push(toDateValue(date));
+  }
+  return dates;
+}
+
+function bookingCoversDate(booking, date) {
+  if (booking.date === date) return true;
+  if (booking.type !== 'monthly') return false;
+  if (date < booking.date || date >= bookingEndDate(booking)) return false;
+  return toLocalDate(date).getDay() === toLocalDate(booking.date).getDay();
+}
+
+function bookingsConflict(existing, requested) {
+  if (existing.time !== requested.time || existing.status === 'cancelled' || existing.status === 'deleted') return false;
+  return bookingOccurrenceDates(requested).some(date => bookingCoversDate(existing, date));
+}
+
 function isAdmin(req) {
   return req.headers['x-admin-pin'] === ADMIN_PIN;
 }
@@ -103,6 +162,8 @@ function publicBooking(item) {
     date: item.date,
     time: item.time,
     type: item.type,
+    months: item.months,
+    endDate: item.endDate,
     category: item.category,
     status: item.status
   };
@@ -110,6 +171,10 @@ function publicBooking(item) {
 
 function cleanText(value) {
   return String(value || '').trim().slice(0, 500);
+}
+
+function makeCancelToken() {
+  return require('crypto').randomBytes(16).toString('hex');
 }
 
 function escapeHtml(value) {
@@ -128,10 +193,12 @@ function mailEnabled() {
 function bookingMailHtml(booking) {
   const type = booking.type === 'monthly' ? 'Stalni mjesečni termin' : 'Jedan termin';
   const category = booking.category === 'school' ? 'Školarci / akademije / klubovi' : 'Standardni termin';
+  const period = booking.type === 'monthly' ? `<p><strong>Period:</strong> ${escapeHtml(monthsLabel(booking.months))}, do ${escapeHtml(formatDate(booking.endDate))}</p>` : '';
   return `
     <div style="font-family:Arial,sans-serif;color:#181b1f;line-height:1.5">
       <h2 style="margin:0 0 12px;color:#df1f2d">Nova rezervacija termina</h2>
       <p><strong>Termin:</strong> ${escapeHtml(formatDate(booking.date))} u ${escapeHtml(booking.time)}</p>
+      ${period}
       <p><strong>Cijena:</strong> ${escapeHtml(booking.price)} KM</p>
       <p><strong>Tip:</strong> ${escapeHtml(type)}</p>
       <p><strong>Kategorija:</strong> ${escapeHtml(category)}</p>
@@ -148,10 +215,12 @@ function bookingMailHtml(booking) {
 function bookingMailText(booking) {
   const type = booking.type === 'monthly' ? 'Stalni mjesečni termin' : 'Jedan termin';
   const category = booking.category === 'school' ? 'Školarci / akademije / klubovi' : 'Standardni termin';
+  const period = booking.type === 'monthly' ? [`Period: ${monthsLabel(booking.months)}, do ${formatDate(booking.endDate)}`] : [];
   return [
     'Nova rezervacija termina',
     '',
     `Termin: ${formatDate(booking.date)} u ${booking.time}`,
+    ...period,
     `Cijena: ${booking.price} KM`,
     `Tip: ${type}`,
     `Kategorija: ${category}`,
@@ -227,6 +296,7 @@ module.exports = async function handler(req, res) {
       const time = cleanText(body.time);
       const type = body.type === 'monthly' ? 'monthly' : 'single';
       const category = body.category === 'school' ? 'school' : 'standard';
+      const months = type === 'monthly' ? bookingMonths(body.months) : 1;
       const name = cleanText(body.name);
       const phone = cleanText(body.phone);
       const email = cleanText(body.email);
@@ -237,7 +307,8 @@ module.exports = async function handler(req, res) {
       }
 
       const result = await mutateBookings(async bookings => {
-        const taken = bookings.some(item => item.date === date && item.time === time && item.status !== 'cancelled' && item.status !== 'deleted');
+        const requested = { date, time, type, months, endDate: addMonths(date, months), status: 'pending' };
+        const taken = bookings.some(item => bookingsConflict(item, requested));
         if (taken) {
           const error = new Error('Ovaj termin je već rezervisan.');
           error.publicStatus = 409;
@@ -251,15 +322,18 @@ module.exports = async function handler(req, res) {
           day: formatDate(date).split(',')[0],
           time,
           type,
+          months,
           category,
           name,
           phone,
           email,
           note,
-          price: bookingPrice(type, category, time),
+          price: bookingPrice(type, category, time, months),
           paid: false,
           status: 'pending',
           renewalDate: type === 'monthly' ? nextRenewalDate(date) : '',
+          endDate: type === 'monthly' ? addMonths(date, months) : '',
+          cancelToken: makeCancelToken(),
           adminEmail: ADMIN_EMAIL
         };
         bookings.push(booking);
@@ -277,24 +351,27 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-      if (!isAdmin(req)) return send(res, 401, { error: 'Pogrešan PIN.' });
       const body = await readBody(req);
       const id = cleanText(body.id);
       const action = cleanText(body.action);
+      const cancelToken = cleanText(body.cancelToken);
       if (!id) return send(res, 400, { error: 'Nedostaje ID rezervacije.' });
+      if (!isAdmin(req) && !(action === 'cancel' && cancelToken)) return send(res, 401, { error: 'Nedostaje dozvola za ovu akciju.' });
 
       const result = await mutateBookings(async bookings => {
         let updated = null;
         const next = bookings.map(item => {
           if (item.id !== id) return item;
+          if (!isAdmin(req) && item.cancelToken !== cancelToken) return item;
           if (action === 'paid') updated = { ...item, paid: !item.paid, status: item.status === 'cancelled' ? 'pending' : item.status };
-          if (action === 'cancel') updated = { ...item, status: item.status === 'cancelled' ? 'pending' : 'cancelled' };
+          if (action === 'cancel') updated = { ...item, status: isAdmin(req) && item.status === 'cancelled' ? 'pending' : 'cancelled' };
           if (action === 'delete') updated = { ...item, status: 'deleted' };
           return updated || item;
         });
         return { bookings: next, result: updated };
       });
 
+      if (!result) return send(res, 404, { error: 'Rezervacija nije pronađena ili se ne može otkazati.' });
       return send(res, 200, { booking: result });
     }
 

@@ -442,6 +442,17 @@
             <option value="monthly">Stalni mjesečni termin</option>
           </select>
         </label>
+        <label class="monthly-field" id="bookingMonthsWrap">Na koliko mjeseci
+          <select id="bookingMonths" name="months">
+            <option value="1">1 mjesec</option>
+            <option value="2">2 mjeseca</option>
+            <option value="3">3 mjeseca</option>
+            <option value="4">4 mjeseca</option>
+            <option value="5">5 mjeseci</option>
+            <option value="6">6 mjeseci</option>
+            <option value="12">12 mjeseci</option>
+          </select>
+        </label>
         <label>Kategorija
           <select id="bookingCategory" name="category" required>
             <option value="standard">Standardni termin</option>
@@ -462,6 +473,10 @@
         <label>Napomena
           <textarea name="note" rows="3" placeholder="npr. mali fudbal, stalna grupa, poseban zahtjev"></textarea>
         </label>
+        <div class="own-bookings" id="ownBookings" hidden>
+          <span class="mini-label">Moje rezervacije</span>
+          <div id="ownBookingsList"></div>
+        </div>
         <p class="booking-message" id="bookingMessage" aria-live="polite"></p>
         <button type="submit" class="btn btn-primary">Pošalji rezervaciju</button>
       </form>

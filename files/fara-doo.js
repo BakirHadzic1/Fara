@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'faraSportBookings';
+const MY_BOOKINGS_KEY = 'faraMyBookings';
 const API_URL = '/api/bookings';
 const DAY_NAMES = ['nedjelja', 'ponedjeljak', 'utorak', 'srijeda', 'četvrtak', 'petak', 'subota'];
 const DAY_SHORT = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub'];
@@ -19,6 +20,18 @@ function localBookings() {
 
 function saveLocalBookings(bookings) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+}
+
+function ownBookings() {
+  try {
+    return JSON.parse(localStorage.getItem(MY_BOOKINGS_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveOwnBookings(bookings) {
+  localStorage.setItem(MY_BOOKINGS_KEY, JSON.stringify(bookings));
 }
 
 function useOnlineApi() {
@@ -51,8 +64,9 @@ async function loadBookings(adminPin = '') {
 async function createBooking(booking) {
   if (!useOnlineApi()) {
     const bookings = localBookings();
-    const taken = bookings.some(item => item.date === booking.date && item.time === booking.time && item.status !== 'cancelled' && item.status !== 'deleted');
+    const taken = bookings.some(item => bookingsConflict(item, booking));
     if (taken) throw new Error('Ovaj termin je već rezervisan.');
+    booking.cancelToken = `local-${Date.now()}`;
     bookings.push(booking);
     saveLocalBookings(bookings);
     return booking;
@@ -62,6 +76,18 @@ async function createBooking(booking) {
     body: JSON.stringify(booking)
   });
   return data.booking;
+}
+
+async function cancelOwnBooking(id, cancelToken) {
+  if (!useOnlineApi()) {
+    const bookings = localBookings().map(item => item.id === id && item.cancelToken === cancelToken ? { ...item, status: 'cancelled' } : item);
+    saveLocalBookings(bookings);
+    return;
+  }
+  await requestBookings({
+    method: 'PATCH',
+    body: JSON.stringify({ id, action: 'cancel', cancelToken })
+  });
 }
 
 async function updateBookingOnline(id, action, adminPin) {
@@ -83,9 +109,22 @@ async function updateBookingOnline(id, action, adminPin) {
   });
 }
 
-function bookingPrice(type, category, time) {
+function bookingMonths(value) {
+  const months = Number(value || 1);
+  if (!Number.isFinite(months)) return 1;
+  return Math.min(12, Math.max(1, Math.round(months)));
+}
+
+function monthsLabel(value) {
+  const months = bookingMonths(value);
+  if (months === 1) return '1 mjesec';
+  if (months >= 2 && months <= 4) return `${months} mjeseca`;
+  return `${months} mjeseci`;
+}
+
+function bookingPrice(type, category, time, months = 1) {
   const hour = Number((time || '0').split(':')[0]);
-  if (type === 'monthly') return 200;
+  if (type === 'monthly') return 200 * bookingMonths(months);
   if (category === 'school' && hour >= 8 && hour < 16) return 30;
   return 50;
 }
@@ -125,8 +164,40 @@ function addDays(date, days) {
   return copy;
 }
 
+function addMonths(dateString, months) {
+  const date = toLocalDate(dateString);
+  date.setMonth(date.getMonth() + bookingMonths(months));
+  return toDateInputValue(date);
+}
+
 function sameOrAfter(dateString, compareString) {
   return toLocalDate(dateString).getTime() >= toLocalDate(compareString).getTime();
+}
+
+function bookingEndDate(booking) {
+  return booking.type === 'monthly' ? (booking.endDate || addMonths(booking.date, booking.months || 1)) : booking.date;
+}
+
+function bookingOccurrenceDates(booking) {
+  if (booking.type !== 'monthly') return [booking.date];
+  const endDate = bookingEndDate(booking);
+  const dates = [];
+  for (let date = toLocalDate(booking.date); toDateInputValue(date) < endDate; date = addDays(date, 7)) {
+    dates.push(toDateInputValue(date));
+  }
+  return dates;
+}
+
+function bookingCoversDate(booking, date) {
+  if (booking.date === date) return true;
+  if (booking.type !== 'monthly') return false;
+  if (date < booking.date || date >= bookingEndDate(booking)) return false;
+  return toLocalDate(date).getDay() === toLocalDate(booking.date).getDay();
+}
+
+function bookingsConflict(existing, requested) {
+  if (existing.time !== requested.time || existing.status === 'cancelled' || existing.status === 'deleted') return false;
+  return bookingOccurrenceDates(requested).some(date => bookingCoversDate(existing, date));
 }
 
 function shortDate(date) {
@@ -177,6 +248,8 @@ function initBookingModal() {
   const dateInput = document.getElementById('bookingDate');
   const timeSelect = document.getElementById('bookingTime');
   const typeSelect = document.getElementById('bookingType');
+  const monthsWrap = document.getElementById('bookingMonthsWrap');
+  const monthsSelect = document.getElementById('bookingMonths');
   const categorySelect = document.getElementById('bookingCategory');
   const summary = document.getElementById('bookingSummary');
   const message = document.getElementById('bookingMessage');
@@ -184,7 +257,9 @@ function initBookingModal() {
   const weekLabel = document.getElementById('bookingWeekLabel');
   const prevWeek = document.getElementById('prevWeek');
   const nextWeek = document.getElementById('nextWeek');
-  if (!modal || !form || !dateInput || !timeSelect || !typeSelect || !categorySelect || !summary || !message || !weekGrid || !weekLabel || !prevWeek || !nextWeek) return;
+  const ownBookingsWrap = document.getElementById('ownBookings');
+  const ownBookingsList = document.getElementById('ownBookingsList');
+  if (!modal || !form || !dateInput || !timeSelect || !typeSelect || !monthsWrap || !monthsSelect || !categorySelect || !summary || !message || !weekGrid || !weekLabel || !prevWeek || !nextWeek || !ownBookingsWrap || !ownBookingsList) return;
 
   let cachedBookings = [];
   const today = new Date().toISOString().slice(0, 10);
@@ -203,12 +278,7 @@ function initBookingModal() {
   }
 
   function isSlotTaken(date, time) {
-    return cachedBookings.some(item => {
-      if (item.time !== time || item.status === 'cancelled' || item.status === 'deleted') return false;
-      if (item.date === date) return true;
-      if (item.type !== 'monthly' || !sameOrAfter(date, item.date)) return false;
-      return toLocalDate(date).getDay() === toLocalDate(item.date).getDay();
-    });
+    return cachedBookings.some(item => bookingsConflict(item, { date, time, type: 'single' }));
   }
 
   function selectedInVisibleWeek() {
@@ -261,16 +331,54 @@ function initBookingModal() {
 
   function updateSummary() {
     if (!selectedInVisibleWeek()) setWeekAround(dateInput.value);
-    const price = bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value);
-    const taken = isSlotTaken(dateInput.value, timeSelect.value);
+    const months = bookingMonths(monthsSelect.value);
+    const price = bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value, months);
+    const requested = { date: dateInput.value, time: timeSelect.value, type: typeSelect.value, months, endDate: addMonths(dateInput.value, months) };
+    const taken = cachedBookings.some(item => bookingsConflict(item, requested));
+    const period = typeSelect.value === 'monthly' ? ` · ${monthsLabel(months)} · do ${formatDate(addMonths(dateInput.value, months))}` : '';
+    monthsWrap.hidden = typeSelect.value !== 'monthly';
     summary.innerHTML = `
       <span>${formatDate(dateInput.value)} · ${timeSelect.value}</span>
       <strong>${price} KM</strong>
-      <small>${bookingTypeLabel(typeSelect.value)} · ${categoryLabel(categorySelect.value)}${taken ? ' · termin je već zauzet' : ''}</small>
+      <small>${bookingTypeLabel(typeSelect.value)}${period} · ${categoryLabel(categorySelect.value)}${taken ? ' · termin je već zauzet' : ''}</small>
     `;
     message.textContent = taken ? 'Ovaj termin je već rezervisan. Odaberite drugi datum ili sat.' : '';
     message.classList.toggle('error', taken);
     renderWeekSchedule();
+    renderOwnBookings();
+  }
+
+  function rememberOwnBooking(booking) {
+    if (!booking?.id || !booking?.cancelToken) return;
+    const mine = ownBookings().filter(item => item.id !== booking.id);
+    mine.push({
+      id: booking.id,
+      cancelToken: booking.cancelToken,
+      date: booking.date,
+      time: booking.time,
+      type: booking.type,
+      months: booking.months,
+      endDate: booking.endDate,
+      price: booking.price,
+      status: booking.status
+    });
+    saveOwnBookings(mine.slice(-8));
+  }
+
+  function renderOwnBookings() {
+    const active = ownBookings()
+      .filter(item => item.status !== 'cancelled' && item.status !== 'deleted')
+      .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+    ownBookingsWrap.hidden = active.length === 0;
+    ownBookingsList.innerHTML = active.map(item => `
+      <div class="own-booking">
+        <div>
+          <strong>${formatDate(item.date)} · ${item.time}</strong>
+          <small>${bookingTypeLabel(item.type)}${item.type === 'monthly' ? ` · ${monthsLabel(item.months)}` : ''} · ${item.price || bookingPrice(item.type, 'standard', item.time, item.months)} KM</small>
+        </div>
+        <button type="button" class="mini-btn" data-own-cancel="${item.id}" data-token="${item.cancelToken}">Otkaži</button>
+      </div>
+    `).join('');
   }
 
   async function refreshBookings() {
@@ -301,7 +409,7 @@ function initBookingModal() {
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && modal.classList.contains('open')) closeModal();
   });
-  [dateInput, timeSelect, typeSelect, categorySelect].forEach(input => input.addEventListener('change', updateSummary));
+  [dateInput, timeSelect, typeSelect, monthsSelect, categorySelect].forEach(input => input.addEventListener('change', updateSummary));
   prevWeek.addEventListener('click', () => {
     currentWeekStart = addDays(currentWeekStart, -7);
     renderWeekSchedule();
@@ -318,6 +426,23 @@ function initBookingModal() {
     message.textContent = 'Termin je slobodan. Popunite podatke i pošaljite rezervaciju.';
     message.classList.remove('error');
     updateSummary();
+  });
+  ownBookingsList.addEventListener('click', async event => {
+    const button = event.target.closest('[data-own-cancel]');
+    if (!button) return;
+    button.disabled = true;
+    try {
+      await cancelOwnBooking(button.dataset.ownCancel, button.dataset.token);
+      saveOwnBookings(ownBookings().map(item => item.id === button.dataset.ownCancel ? { ...item, status: 'cancelled' } : item));
+      await refreshBookings();
+      message.textContent = 'Rezervacija je otkazana.';
+      message.classList.remove('error');
+    } catch (error) {
+      message.textContent = error.message || 'Otkazivanje nije uspjelo.';
+      message.classList.add('error');
+    } finally {
+      button.disabled = false;
+    }
   });
 
   form.addEventListener('submit', async event => {
@@ -338,10 +463,12 @@ function initBookingModal() {
       phone: String(data.get('phone') || '').trim(),
       email: String(data.get('email') || '').trim(),
       note: String(data.get('note') || '').trim(),
-      price: bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value),
+      months: typeSelect.value === 'monthly' ? bookingMonths(monthsSelect.value) : 1,
+      price: bookingPrice(typeSelect.value, categorySelect.value, timeSelect.value, monthsSelect.value),
       paid: false,
       status: 'pending',
-      renewalDate: typeSelect.value === 'monthly' ? nextRenewalDate(dateInput.value) : ''
+      renewalDate: typeSelect.value === 'monthly' ? nextRenewalDate(dateInput.value) : '',
+      endDate: typeSelect.value === 'monthly' ? addMonths(dateInput.value, monthsSelect.value) : ''
     };
 
     try {
@@ -349,6 +476,7 @@ function initBookingModal() {
       message.classList.remove('error');
       const saved = await createBooking(booking);
       cachedBookings.push(saved);
+      rememberOwnBooking(saved);
       form.reset();
       dateInput.value = today;
       setWeekAround(today);
@@ -442,7 +570,7 @@ function initAdminPanel() {
       tr.innerHTML = `
         <td><strong>${formatDate(item.date)}</strong><small>${item.time} · ${item.day || ''}</small></td>
         <td><strong>${item.name}</strong><small>${item.phone}${item.email ? ` · ${item.email}` : ''}</small></td>
-        <td><strong>${bookingTypeLabel(item.type)}</strong><small>${categoryLabel(item.category)}${item.renewalDate ? ` · produženje ${formatDate(item.renewalDate)}` : ''}</small></td>
+        <td><strong>${bookingTypeLabel(item.type)}</strong><small>${categoryLabel(item.category)}${item.type === 'monthly' ? ` · ${monthsLabel(item.months)} · do ${formatDate(item.endDate || addMonths(item.date, item.months || 1))}` : ''}</small></td>
         <td><strong>${item.price} KM</strong><small>${item.note || 'Bez napomene'}</small></td>
         <td><span class="status-pill ${statusClass}">${statusText}</span></td>
         <td>
