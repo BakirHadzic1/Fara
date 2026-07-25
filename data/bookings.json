@@ -149,7 +149,7 @@
     "note": "Test unos",
     "price": 50,
     "paid": false,
-    "status": "pending",
+    "status": "deleted",
     "renewalDate": "",
     "endDate": "",
     "cancelToken": "cd743b0a527c8917f929e257a17aa89a",
