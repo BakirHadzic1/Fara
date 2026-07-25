@@ -366,7 +366,10 @@ function initBookingModal() {
         <tbody>${rows}</tbody>
       </table>
       <div class="mobile-week-list">
-        <div class="mobile-step-label">1. Izaberite dan</div>
+        <div class="mobile-step-row">
+          <div class="mobile-step-label">1. Izaberite dan</div>
+          <div class="mobile-scroll-hint">Listajte dane →</div>
+        </div>
         <div class="mobile-date-strip">${mobileDateChips}</div>
         <section class="mobile-day-card">
           <div class="mobile-step-label">2. Izaberite sat</div>

@@ -1293,6 +1293,19 @@ body.modal-open{overflow:hidden;}
     letter-spacing:.14em;
     text-transform:uppercase;
   }
+  .mobile-step-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .mobile-scroll-hint{
+    color:var(--ink-soft);
+    font:900 10px var(--font-mono);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
   .mobile-date-strip{
     display:flex;
     gap:9px;
