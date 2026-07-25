@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FARA Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="desktop-admin.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <span class="brand">FARA<span>.</span></span>
+      <small>Desktop admin panel</small>
+    </div>
+    <div class="header-actions">
+      <button class="ghost-btn" id="refreshData" type="button">Osvježi</button>
+      <a class="ghost-btn" href="https://www.fara.ba/admin.html" target="_blank" rel="noopener">Online admin</a>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="login-panel" id="loginPanel">
+      <div>
+        <span class="eyebrow">Pristup</span>
+        <h1>Unesite admin PIN</h1>
+        <p>Desktop aplikacija čita iste online rezervacije kao stranica i admin panel.</p>
+      </div>
+      <form class="login-form" id="loginForm">
+        <label>PIN
+          <input type="password" id="adminPin" autocomplete="current-password" required>
+        </label>
+        <button class="primary-btn" type="submit">Otvori panel</button>
+        <p class="message" id="loginMessage"></p>
+      </form>
+    </section>
+
+    <section class="dashboard" id="dashboard" hidden>
+      <div class="dashboard-head">
+        <div>
+          <span class="eyebrow">Sport Centar</span>
+          <h1>Rezervacije i stalni termini</h1>
+        </div>
+        <p id="lastUpdated">Učitavanje...</p>
+      </div>
+
+      <section class="stats-grid" aria-label="Statistika">
+        <article class="stat-card">
+          <span>Danas plaćeno</span>
+          <strong id="statToday">0 KM</strong>
+        </article>
+        <article class="stat-card">
+          <span>Sedmica plaćeno</span>
+          <strong id="statWeek">0 KM</strong>
+        </article>
+        <article class="stat-card">
+          <span>Mjesec plaćeno</span>
+          <strong id="statMonth">0 KM</strong>
+        </article>
+        <article class="stat-card">
+          <span>Aktivno / neplaćeno</span>
+          <strong id="statOpen">0 / 0</strong>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <div>
+            <span class="eyebrow">Raspored</span>
+            <h2>Stalni termini</h2>
+          </div>
+          <small>Mjesečni termini blokirani u online rasporedu</small>
+        </div>
+        <div class="standing-grid" id="standingTerms"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <div>
+            <span class="eyebrow">Kontrola</span>
+            <h2>Rezervacije</h2>
+          </div>
+          <div class="filters">
+            <input type="date" id="dateFilter">
+            <select id="statusFilter">
+              <option value="all">Svi statusi</option>
+              <option value="pending">Nije plaćeno</option>
+              <option value="paid">Plaćeno</option>
+              <option value="cancelled">Otkazano</option>
+            </select>
+            <input type="search" id="searchFilter" placeholder="Pretraga ime, broj, napomena">
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Termin</th>
+                <th>Korisnik</th>
+                <th>Tip</th>
+                <th>Iznos</th>
+                <th>Status</th>
+                <th>Akcije</th>
+              </tr>
+            </thead>
+            <tbody id="bookingRows"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="emptyState">Nema rezervacija za odabrani filter.</p>
+      </section>
+    </section>
+  </main>
+
+<script src="desktop-admin.js"></script>
+</body>
+</html>

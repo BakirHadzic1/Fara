@@ -1,8 +1,12 @@
 {
   "scripts": {
-    "check": "node --check fara-doo.js && node --check files/fara-doo.js && node --check api/bookings.js"
+    "check": "node --check fara-doo.js && node --check files/fara-doo.js && node --check api/bookings.js && node --check electron/main.js && node --check electron/desktop-admin.js",
+    "desktop": "electron electron/main.js"
   },
   "dependencies": {
     "nodemailer": "^6.9.16"
+  },
+  "devDependencies": {
+    "electron": "^43.2.0"
   }
 }
