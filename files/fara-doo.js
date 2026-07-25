@@ -328,11 +328,39 @@ function initBookingModal() {
       return `<tr><td>${time}</td>${cells}</tr>`;
     }).join('');
 
+    const selectedDayIndex = days.findIndex(day => toDateInputValue(day) === dateInput.value);
+    const mobileDayOrder = selectedDayIndex >= 0 ? [...days.slice(selectedDayIndex), ...days.slice(0, selectedDayIndex)] : days;
+    const mobileDays = mobileDayOrder.map(day => {
+      const dateValue = toDateInputValue(day);
+      const label = `${DAY_SHORT[day.getDay()]} ${String(day.getDate()).padStart(2, '0')}.${String(day.getMonth() + 1).padStart(2, '0')}.`;
+      const slots = timeSlots.map(time => {
+        const past = dateValue < today;
+        const closed = isSlotClosed(dateValue, time);
+        const busy = isSlotTaken(dateValue, time);
+        const selected = dateInput.value === dateValue && timeSelect.value === time;
+        const state = past ? 'past' : closed ? 'closed' : busy ? 'busy' : 'free';
+        const label = past ? 'Prošlo' : closed ? 'Zatvoreno' : busy ? 'Zauzeto' : 'Slobodno';
+        return `
+          <button type="button" class="slot-btn ${state}${selected ? ' selected' : ''}" data-date="${dateValue}" data-time="${time}" ${state === 'free' ? '' : 'disabled'}>
+            <span>${time}</span>
+            <strong>${label}</strong>
+          </button>
+        `;
+      }).join('');
+      return `
+        <section class="mobile-day-card">
+          <h4>${label}${dateValue === today ? '<small>Danas</small>' : ''}</h4>
+          <div class="mobile-slots">${slots}</div>
+        </section>
+      `;
+    }).join('');
+
     weekGrid.innerHTML = `
       <table class="week-table">
         <thead><tr><th>Sat</th>${head}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
+      <div class="mobile-week-list">${mobileDays}</div>
     `;
   }
 
