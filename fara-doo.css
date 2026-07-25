@@ -1285,12 +1285,69 @@ body.modal-open{overflow:hidden;}
   }
   .mobile-week-list{
     display:grid;
-    gap:12px;
+    gap:14px;
   }
+  .mobile-step-label{
+    color:var(--red);
+    font:900 11px var(--font-mono);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+  }
+  .mobile-date-strip{
+    display:flex;
+    gap:9px;
+    overflow-x:auto;
+    padding:2px 2px 10px;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .mobile-date-strip::-webkit-scrollbar{height:4px;}
+  .mobile-date-strip::-webkit-scrollbar-thumb{background:#c8ced1;}
+  .mobile-date-chip{
+    flex:0 0 92px;
+    scroll-snap-align:start;
+    display:grid;
+    gap:4px;
+    min-height:86px;
+    padding:12px 10px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fff;
+    color:var(--ink);
+    text-align:left;
+  }
+  .mobile-date-chip span{
+    font:900 11px var(--font-mono);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .mobile-date-chip strong{
+    font-family:var(--font-display);
+    font-size:30px;
+    line-height:.9;
+  }
+  .mobile-date-chip small{
+    color:var(--green-dark);
+    font:900 11px var(--font-mono);
+    letter-spacing:.06em;
+  }
+  .mobile-date-chip.selected{
+    background:#15191d;
+    color:#fff;
+    border-color:#15191d;
+    box-shadow:0 10px 24px rgba(24,27,31,.18);
+  }
+  .mobile-date-chip.selected span{color:#cfd5d8;}
+  .mobile-date-chip:disabled{
+    opacity:.48;
+    cursor:not-allowed;
+  }
+  .mobile-date-chip:disabled small{color:#6f767b;}
   .mobile-day-card{
     border:1px solid var(--line);
     background:#fff;
-    padding:12px;
+    padding:14px;
   }
   .mobile-day-card h4{
     display:flex;
@@ -1310,23 +1367,25 @@ body.modal-open{overflow:hidden;}
   }
   .mobile-slots{
     display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-columns:1fr;
     gap:8px;
   }
   .mobile-slots .slot-btn{
-    display:grid;
-    gap:4px;
-    min-height:58px;
-    padding:8px 6px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    min-height:56px;
+    padding:0 14px;
     border-radius:8px;
-    text-align:center;
+    text-align:left;
   }
   .mobile-slots .slot-btn span{
-    font-size:13px;
+    font-size:15px;
     letter-spacing:.02em;
   }
   .mobile-slots .slot-btn strong{
-    font-size:10px;
+    font-size:11px;
     letter-spacing:.08em;
   }
   .admin-filter,.admin-filter label,.admin-toolbar .btn{width:100%;}

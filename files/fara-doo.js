@@ -329,29 +329,34 @@ function initBookingModal() {
     }).join('');
 
     const selectedDayIndex = days.findIndex(day => toDateInputValue(day) === dateInput.value);
-    const mobileDayOrder = selectedDayIndex >= 0 ? [...days.slice(selectedDayIndex), ...days.slice(0, selectedDayIndex)] : days;
-    const mobileDays = mobileDayOrder.map(day => {
+    const mobileDateOrder = selectedDayIndex >= 0 ? [...days.slice(selectedDayIndex), ...days.slice(0, selectedDayIndex)] : days;
+    const mobileDateChips = mobileDateOrder.map(day => {
       const dateValue = toDateInputValue(day);
-      const label = `${DAY_SHORT[day.getDay()]} ${String(day.getDate()).padStart(2, '0')}.${String(day.getMonth() + 1).padStart(2, '0')}.`;
-      const slots = timeSlots.map(time => {
-        const past = dateValue < today;
-        const closed = isSlotClosed(dateValue, time);
-        const busy = isSlotTaken(dateValue, time);
-        const selected = dateInput.value === dateValue && timeSelect.value === time;
-        const state = past ? 'past' : closed ? 'closed' : busy ? 'busy' : 'free';
-        const label = past ? 'Prošlo' : closed ? 'Zatvoreno' : busy ? 'Zauzeto' : 'Slobodno';
-        return `
-          <button type="button" class="slot-btn ${state}${selected ? ' selected' : ''}" data-date="${dateValue}" data-time="${time}" ${state === 'free' ? '' : 'disabled'}>
-            <span>${time}</span>
-            <strong>${label}</strong>
-          </button>
-        `;
-      }).join('');
+      const isPast = dateValue < today;
+      const freeCount = timeSlots.filter(time => !isPast && !isSlotClosed(dateValue, time) && !isSlotTaken(dateValue, time)).length;
       return `
-        <section class="mobile-day-card">
-          <h4>${label}${dateValue === today ? '<small>Danas</small>' : ''}</h4>
-          <div class="mobile-slots">${slots}</div>
-        </section>
+        <button type="button" class="mobile-date-chip${dateInput.value === dateValue ? ' selected' : ''}" data-date="${dateValue}" ${isPast ? 'disabled' : ''}>
+          <span>${DAY_SHORT[day.getDay()]}</span>
+          <strong>${String(day.getDate()).padStart(2, '0')}.${String(day.getMonth() + 1).padStart(2, '0')}.</strong>
+          <small>${dateValue === today ? 'Danas' : isPast ? 'Prošlo' : `${freeCount} slob.`}</small>
+        </button>
+      `;
+    }).join('');
+
+    const selectedDate = toLocalDate(dateInput.value);
+    const selectedDateLabel = `${DAY_SHORT[selectedDate.getDay()]} ${String(selectedDate.getDate()).padStart(2, '0')}.${String(selectedDate.getMonth() + 1).padStart(2, '0')}.`;
+    const selectedSlots = timeSlots.map(time => {
+      const past = dateInput.value < today;
+      const closed = isSlotClosed(dateInput.value, time);
+      const busy = isSlotTaken(dateInput.value, time);
+      const selected = timeSelect.value === time;
+      const state = past ? 'past' : closed ? 'closed' : busy ? 'busy' : 'free';
+      const label = past ? 'Prošlo' : closed ? 'Zatvoreno' : busy ? 'Zauzeto' : 'Slobodno';
+      return `
+        <button type="button" class="slot-btn ${state}${selected ? ' selected' : ''}" data-date="${dateInput.value}" data-time="${time}" ${state === 'free' ? '' : 'disabled'}>
+          <span>${time} - ${String(Number(time.slice(0, 2)) + 1).padStart(2, '0')}:00</span>
+          <strong>${label}</strong>
+        </button>
       `;
     }).join('');
 
@@ -360,7 +365,15 @@ function initBookingModal() {
         <thead><tr><th>Sat</th>${head}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      <div class="mobile-week-list">${mobileDays}</div>
+      <div class="mobile-week-list">
+        <div class="mobile-step-label">1. Izaberite dan</div>
+        <div class="mobile-date-strip">${mobileDateChips}</div>
+        <section class="mobile-day-card">
+          <div class="mobile-step-label">2. Izaberite sat</div>
+          <h4>${selectedDateLabel}${dateInput.value === today ? '<small>Danas</small>' : ''}</h4>
+          <div class="mobile-slots">${selectedSlots}</div>
+        </section>
+      </div>
     `;
   }
 
@@ -469,6 +482,14 @@ function initBookingModal() {
     renderWeekSchedule();
   });
   weekGrid.addEventListener('click', event => {
+    const dateChip = event.target.closest('.mobile-date-chip');
+    if (dateChip && !dateChip.disabled) {
+      dateInput.value = dateChip.dataset.date;
+      message.textContent = 'Odaberite slobodan sat za ovaj dan.';
+      message.classList.remove('error');
+      updateSummary();
+      return;
+    }
     const button = event.target.closest('.slot-btn.free');
     if (!button) return;
     dateInput.value = button.dataset.date;
