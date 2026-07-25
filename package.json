@@ -10,7 +10,8 @@
     "check": "node --check fara-doo.js && node --check files/fara-doo.js && node --check api/bookings.js && node --check electron/main.js && node --check electron/desktop-admin.js",
     "desktop": "electron electron/main.js",
     "desktop:pack": "electron-builder --mac --dir",
-    "desktop:build": "electron-builder --mac --universal"
+    "desktop:build": "electron-builder --mac --universal",
+    "desktop:build:win": "electron-builder --win zip --x64"
   },
   "dependencies": {
     "nodemailer": "^6.9.16"
@@ -34,6 +35,12 @@
       "icon": "build/icon.icns",
       "target": [
         "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
         "zip"
       ]
     }

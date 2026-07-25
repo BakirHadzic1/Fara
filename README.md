@@ -22,6 +22,9 @@ Gotovi fajlovi izlaze u `dist/`:
 
 - `FARA Admin-1.0.0-universal.dmg` za instalaciju na Mac
 - `mac-universal/FARA Admin.app` za direktno pokretanje
+- `FARA Admin-1.0.0-win.zip` za Windows računar
+
+Za Windows: raspakovati zip fajl i pokrenuti `FARA Admin.exe`.
 
 Šta treba da radi:
 
