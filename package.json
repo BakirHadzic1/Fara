@@ -1,12 +1,41 @@
 {
+  "name": "fara-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FARA desktop admin panel",
+  "author": "FARA d.o.o.",
+  "main": "electron/main.js",
+  "productName": "FARA Admin",
   "scripts": {
     "check": "node --check fara-doo.js && node --check files/fara-doo.js && node --check api/bookings.js && node --check electron/main.js && node --check electron/desktop-admin.js",
-    "desktop": "electron electron/main.js"
+    "desktop": "electron electron/main.js",
+    "desktop:pack": "electron-builder --mac --dir",
+    "desktop:build": "electron-builder --mac --universal"
   },
   "dependencies": {
     "nodemailer": "^6.9.16"
   },
   "devDependencies": {
-    "electron": "^43.2.0"
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "ba.fara.admin",
+    "productName": "FARA Admin",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.business",
+      "icon": "build/icon.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    }
   }
 }
