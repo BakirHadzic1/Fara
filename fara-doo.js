@@ -394,14 +394,22 @@ function initBookingModal() {
     updateSummary();
   }
 
+  let modalOpening = false;
+
   async function openModal() {
+    if (modal.classList.contains('open') || modalOpening) return;
+    modalOpening = true;
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modal-open');
     modal.querySelector('.booking-dialog').scrollTop = 0;
     message.textContent = 'Učitavam raspored...';
     message.classList.remove('error');
-    await refreshBookings();
+    try {
+      await refreshBookings();
+    } finally {
+      modalOpening = false;
+    }
   }
 
   function closeModal() {
@@ -412,6 +420,12 @@ function initBookingModal() {
 
   document.querySelectorAll('.booking-trigger').forEach(button => {
     button.addEventListener('click', openModal);
+  });
+  document.querySelectorAll('a[href="#rezervacija"]').forEach(link => {
+    link.addEventListener('click', () => window.setTimeout(openModal, 120));
+  });
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#rezervacija') window.setTimeout(openModal, 120);
   });
   modal.querySelectorAll('[data-booking-close]').forEach(button => button.addEventListener('click', closeModal));
   document.addEventListener('keydown', event => {
@@ -482,6 +496,7 @@ function initBookingModal() {
   });
 
   refreshBookings();
+  if (window.location.hash === '#rezervacija') window.setTimeout(openModal, 350);
 }
 
 function initAdminPanel() {
