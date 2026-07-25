@@ -133,5 +133,26 @@
     "endDate": "",
     "cancelToken": "738ba1b005733a60a8e6f5ab6a6d4e29",
     "adminEmail": "fara.termini@gmail.com"
+  },
+  {
+    "id": "fara-1784980606651",
+    "createdAt": "2026-07-25T11:56:46.651Z",
+    "date": "2026-07-25",
+    "day": "subota",
+    "time": "20:00",
+    "type": "single",
+    "months": 1,
+    "category": "standard",
+    "name": "Primjer rezervacije",
+    "phone": "061 182 484",
+    "email": "",
+    "note": "Test unos",
+    "price": 50,
+    "paid": false,
+    "status": "pending",
+    "renewalDate": "",
+    "endDate": "",
+    "cancelToken": "cd743b0a527c8917f929e257a17aa89a",
+    "adminEmail": "fara.termini@gmail.com"
   }
 ]
