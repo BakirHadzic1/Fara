@@ -68,6 +68,60 @@
       <section class="panel">
         <div class="panel-title">
           <div>
+            <span class="eyebrow">Ručni unos</span>
+            <h2>Dodaj termin</h2>
+          </div>
+          <small>Za telefonske rezervacije i dogovore u centru</small>
+        </div>
+        <form class="create-form" id="createBookingForm">
+          <label>Datum
+            <input type="date" id="createDate" required>
+          </label>
+          <label>Termin
+            <select id="createTime" required></select>
+          </label>
+          <label>Tip
+            <select id="createType">
+              <option value="single">Jedan termin</option>
+              <option value="monthly">Stalni mjesečni</option>
+            </select>
+          </label>
+          <label id="createMonthsWrap" hidden>Period
+            <select id="createMonths">
+              <option value="1">1 mjesec</option>
+              <option value="2">2 mjeseca</option>
+              <option value="3">3 mjeseca</option>
+              <option value="6">6 mjeseci</option>
+              <option value="12">12 mjeseci</option>
+            </select>
+          </label>
+          <label>Kategorija
+            <select id="createCategory">
+              <option value="standard">Standardni termin</option>
+              <option value="school">Školarci / klubovi</option>
+            </select>
+          </label>
+          <label>Ime
+            <input type="text" id="createName" placeholder="Ime ekipe ili osobe" required>
+          </label>
+          <label>Telefon
+            <input type="tel" id="createPhone" placeholder="062 290 622" required>
+          </label>
+          <label>Napomena
+            <input type="text" id="createNote" placeholder="Npr. dogovoreno telefonom">
+          </label>
+          <label class="check-row">
+            <input type="checkbox" id="createPaid">
+            <span>Odmah označi kao plaćeno</span>
+          </label>
+          <button class="primary-btn" type="submit">Dodaj termin</button>
+        </form>
+        <p class="message" id="createMessage"></p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <div>
             <span class="eyebrow">Raspored</span>
             <h2>Stalni termini</h2>
           </div>

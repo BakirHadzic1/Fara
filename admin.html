@@ -68,6 +68,60 @@
     </section>
 
     <section class="admin-panel">
+      <div class="admin-form-head">
+        <div>
+          <span class="section-eyebrow">Ručni unos</span>
+          <h2>Dodaj termin</h2>
+        </div>
+        <p>Za telefonske rezervacije ili termine koje osoblje upisuje direktno.</p>
+      </div>
+      <form class="admin-create-form" id="adminCreateForm">
+        <label>Datum
+          <input type="date" id="adminCreateDate" required>
+        </label>
+        <label>Termin
+          <select id="adminCreateTime" required></select>
+        </label>
+        <label>Tip
+          <select id="adminCreateType">
+            <option value="single">Jedan termin</option>
+            <option value="monthly">Stalni mjesečni</option>
+          </select>
+        </label>
+        <label id="adminCreateMonthsWrap" hidden>Period
+          <select id="adminCreateMonths">
+            <option value="1">1 mjesec</option>
+            <option value="2">2 mjeseca</option>
+            <option value="3">3 mjeseca</option>
+            <option value="6">6 mjeseci</option>
+            <option value="12">12 mjeseci</option>
+          </select>
+        </label>
+        <label>Kategorija
+          <select id="adminCreateCategory">
+            <option value="standard">Standardni termin</option>
+            <option value="school">Školarci / klubovi</option>
+          </select>
+        </label>
+        <label>Ime
+          <input type="text" id="adminCreateName" placeholder="Ime ekipe ili osobe" required>
+        </label>
+        <label>Telefon
+          <input type="tel" id="adminCreatePhone" placeholder="062 290 622" required>
+        </label>
+        <label>Napomena
+          <input type="text" id="adminCreateNote" placeholder="Npr. dogovoreno telefonom">
+        </label>
+        <label class="admin-check">
+          <input type="checkbox" id="adminCreatePaid">
+          <span>Odmah označi kao plaćeno</span>
+        </label>
+        <button class="btn btn-primary" type="submit">Dodaj termin</button>
+      </form>
+      <p class="booking-message" id="adminCreateMessage"></p>
+    </section>
+
+    <section class="admin-panel">
       <div class="admin-toolbar">
         <div class="admin-filter">
           <label>Datum

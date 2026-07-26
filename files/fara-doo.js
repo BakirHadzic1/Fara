@@ -61,7 +61,7 @@ async function loadBookings(adminPin = '') {
   }
 }
 
-async function createBooking(booking) {
+async function createBooking(booking, adminPin = '') {
   if (!useOnlineApi()) {
     const bookings = localBookings();
     const taken = bookings.some(item => bookingsConflict(item, booking));
@@ -73,6 +73,7 @@ async function createBooking(booking) {
   }
   const data = await requestBookings({
     method: 'POST',
+    headers: adminPin ? { 'X-Admin-Pin': adminPin } : {},
     body: JSON.stringify(booking)
   });
   return data.booking;
@@ -559,6 +560,18 @@ function initAdminPanel() {
   const searchFilter = document.getElementById('adminSearchFilter');
   const exportButton = document.getElementById('exportBookings');
   const seedButton = document.getElementById('seedDemoBooking');
+  const createForm = document.getElementById('adminCreateForm');
+  const createDate = document.getElementById('adminCreateDate');
+  const createTime = document.getElementById('adminCreateTime');
+  const createType = document.getElementById('adminCreateType');
+  const createMonthsWrap = document.getElementById('adminCreateMonthsWrap');
+  const createMonths = document.getElementById('adminCreateMonths');
+  const createCategory = document.getElementById('adminCreateCategory');
+  const createName = document.getElementById('adminCreateName');
+  const createPhone = document.getElementById('adminCreatePhone');
+  const createNote = document.getElementById('adminCreateNote');
+  const createPaid = document.getElementById('adminCreatePaid');
+  const createMessage = document.getElementById('adminCreateMessage');
   const loginPanel = document.getElementById('adminLogin');
   const loginForm = document.getElementById('adminLoginForm');
   const loginError = document.getElementById('adminLoginError');
@@ -567,6 +580,23 @@ function initAdminPanel() {
 
   let adminPin = sessionStorage.getItem('faraAdminPin') || '';
   let adminBookings = [];
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (createDate) {
+    createDate.min = today;
+    createDate.value = today;
+  }
+
+  if (createTime) {
+    for (let hour = 8; hour <= 22; hour += 1) {
+      const value = `${String(hour).padStart(2, '0')}:00`;
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = `${value} - ${String(hour + 1).padStart(2, '0')}:00`;
+      createTime.appendChild(option);
+    }
+    createTime.value = '18:00';
+  }
 
   function inCurrentWeek(dateString) {
     const date = new Date(`${dateString}T12:00:00`);
@@ -716,11 +746,67 @@ function initAdminPanel() {
           name: 'Primjer rezervacije',
           phone: '061 182 484',
           email: '',
-          note: 'Test unos'
-        });
+          note: 'Test unos',
+          paid: false
+        }, adminPin);
         await refreshAdmin();
       } catch (error) {
         alert(error.message || 'Test unos nije uspio.');
+      }
+    });
+  }
+
+  if (createType && createMonthsWrap) {
+    createType.addEventListener('change', () => {
+      createMonthsWrap.hidden = createType.value !== 'monthly';
+    });
+  }
+
+  if (createForm) {
+    createForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!adminPin) return;
+      const submitButton = createForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Dodajem...';
+      }
+      if (createMessage) {
+        createMessage.textContent = '';
+        createMessage.classList.remove('error');
+      }
+      try {
+        const booking = {
+          date: createDate.value,
+          time: createTime.value,
+          type: createType.value,
+          category: createCategory.value,
+          name: createName.value.trim(),
+          phone: createPhone.value.trim(),
+          email: '',
+          note: createNote.value.trim() || 'Ručni unos iz admin panela',
+          months: createType.value === 'monthly' ? bookingMonths(createMonths.value) : 1,
+          paid: createPaid.checked
+        };
+        await createBooking(booking, adminPin);
+        createForm.reset();
+        createDate.value = today;
+        createTime.value = '18:00';
+        createMonthsWrap.hidden = true;
+        await refreshAdmin();
+        if (createMessage) createMessage.textContent = 'Termin je dodat i odmah je zauzet u rasporedu.';
+      } catch (error) {
+        if (createMessage) {
+          createMessage.textContent = error.message || 'Termin nije dodat.';
+          createMessage.classList.add('error');
+        } else {
+          alert(error.message || 'Termin nije dodat.');
+        }
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Dodaj termin';
+        }
       }
     });
   }

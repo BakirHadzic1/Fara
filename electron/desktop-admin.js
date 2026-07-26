@@ -17,8 +17,38 @@ const statusFilter = document.getElementById('statusFilter');
 const searchFilter = document.getElementById('searchFilter');
 const standingTerms = document.getElementById('standingTerms');
 const lastUpdated = document.getElementById('lastUpdated');
+const createForm = document.getElementById('createBookingForm');
+const createDate = document.getElementById('createDate');
+const createTime = document.getElementById('createTime');
+const createType = document.getElementById('createType');
+const createMonthsWrap = document.getElementById('createMonthsWrap');
+const createMonths = document.getElementById('createMonths');
+const createCategory = document.getElementById('createCategory');
+const createName = document.getElementById('createName');
+const createPhone = document.getElementById('createPhone');
+const createNote = document.getElementById('createNote');
+const createPaid = document.getElementById('createPaid');
+const createMessage = document.getElementById('createMessage');
 
 if (adminPin) pinInput.value = adminPin;
+
+const today = new Date().toISOString().slice(0, 10);
+
+if (createDate) {
+  createDate.min = today;
+  createDate.value = today;
+}
+
+if (createTime) {
+  for (let hour = 8; hour <= 22; hour += 1) {
+    const value = `${String(hour).padStart(2, '0')}:00`;
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = `${value} - ${String(hour + 1).padStart(2, '0')}:00`;
+    createTime.appendChild(option);
+  }
+  createTime.value = '18:00';
+}
 
 function money(value) {
   return `${Number(value || 0)} KM`;
@@ -74,6 +104,14 @@ async function apiRequest(options = {}) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Greška pri spajanju.');
   return data;
+}
+
+async function createBooking(booking) {
+  const data = await apiRequest({
+    method: 'POST',
+    body: JSON.stringify(booking)
+  });
+  return data.booking;
 }
 
 async function loadData() {
@@ -207,3 +245,49 @@ rows.addEventListener('click', async event => {
   button.disabled = true;
   await updateBooking(button.dataset.id, button.dataset.action);
 });
+
+if (createType && createMonthsWrap) {
+  createType.addEventListener('change', () => {
+    createMonthsWrap.hidden = createType.value !== 'monthly';
+  });
+}
+
+if (createForm) {
+  createForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!adminPin) return;
+    const submitButton = createForm.querySelector('button[type="submit"]');
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Dodajem...';
+    }
+    createMessage.textContent = '';
+    try {
+      await createBooking({
+        date: createDate.value,
+        time: createTime.value,
+        type: createType.value,
+        category: createCategory.value,
+        name: createName.value.trim(),
+        phone: createPhone.value.trim(),
+        email: '',
+        note: createNote.value.trim() || 'Ručni unos iz desktop admin panela',
+        months: createType.value === 'monthly' ? Number(createMonths.value || 1) : 1,
+        paid: createPaid.checked
+      });
+      createForm.reset();
+      createDate.value = today;
+      createTime.value = '18:00';
+      createMonthsWrap.hidden = true;
+      await loadData();
+      createMessage.textContent = 'Termin je dodat i odmah je zauzet u rasporedu.';
+    } catch (error) {
+      createMessage.textContent = error.message || 'Termin nije dodat.';
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Dodaj termin';
+      }
+    }
+  });
+}

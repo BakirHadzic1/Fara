@@ -156,6 +156,36 @@ input:focus,select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(223,3
 }
 .panel{padding:22px;}
 
+.create-form{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(150px,1fr));
+  gap:12px;
+  align-items:end;
+  margin-top:18px;
+}
+.check-row{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:1px solid var(--line);
+  background:#fff;
+  padding:0 12px;
+}
+.check-row input{
+  width:18px;
+  min-height:18px;
+  accent-color:var(--green);
+}
+.check-row span{
+  font-family:var(--font-body);
+  font-size:13px;
+  letter-spacing:0;
+  text-transform:none;
+  color:var(--ink);
+  font-weight:900;
+}
+
 .standing-grid{
   display:grid;
   grid-template-columns:repeat(7,minmax(150px,1fr));
@@ -240,5 +270,10 @@ td small{display:block;color:var(--muted);margin-top:3px;}
   .login-panel{grid-template-columns:1fr;}
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .dashboard-head,.panel-title{align-items:flex-start;flex-direction:column;}
+  .create-form{grid-template-columns:repeat(2,minmax(0,1fr));}
   .filters{grid-template-columns:1fr;width:100%;}
+}
+
+@media (max-width:640px){
+  .create-form{grid-template-columns:1fr;}
 }

@@ -346,6 +346,7 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'POST') {
       const body = await readBody(req);
+      const adminRequest = isAdmin(req);
       const date = cleanText(body.date);
       const time = cleanText(body.time);
       const type = body.type === 'monthly' ? 'monthly' : 'single';
@@ -386,22 +387,25 @@ module.exports = async function handler(req, res) {
           email,
           note,
           price: bookingPrice(type, category, time),
-          paid: false,
+          paid: adminRequest ? Boolean(body.paid) : false,
           status: 'pending',
           renewalDate: type === 'monthly' ? nextRenewalDate(date) : '',
           endDate: type === 'monthly' ? addMonths(date, months) : '',
           cancelToken: makeCancelToken(),
-          adminEmail: ADMIN_EMAIL
+          adminEmail: ADMIN_EMAIL,
+          source: adminRequest ? 'admin' : 'web'
         };
         bookings.push(booking);
         return { bookings, result: booking };
       });
 
       let emailSent = false;
-      try {
-        emailSent = await sendBookingEmail(result);
-      } catch (mailError) {
-        console.error('Booking email failed:', mailError.message);
+      if (!adminRequest) {
+        try {
+          emailSent = await sendBookingEmail(result);
+        } catch (mailError) {
+          console.error('Booking email failed:', mailError.message);
+        }
       }
 
       return send(res, 201, { booking: result, emailSent });
