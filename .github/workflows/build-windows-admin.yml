@@ -1,0 +1,46 @@
+name: Build Windows Admin App
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "electron/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/build-windows-admin.yml"
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build installer
+        run: pnpm desktop:build:win
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: FARA-Admin-Windows
+          path: |
+            dist/*.exe
+            dist/*-win.zip
+          if-no-files-found: error
