@@ -11,7 +11,7 @@
     "desktop": "electron electron/main.js",
     "desktop:pack": "electron-builder --mac --dir",
     "desktop:build": "electron-builder --mac --universal",
-    "desktop:build:win": "electron-builder --win nsis zip --x64"
+    "desktop:build:win": "electron-builder --win zip --x64"
   },
   "dependencies": {
     "nodemailer": "^6.9.16"
@@ -41,17 +41,8 @@
     "win": {
       "icon": "build/icon.ico",
       "target": [
-        "nsis",
         "zip"
       ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "FARA Admin"
     }
   }
 }
