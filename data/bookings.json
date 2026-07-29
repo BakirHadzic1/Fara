@@ -324,7 +324,7 @@
     "note": "Stalni termin unesen ručno.",
     "price": 200,
     "paid": false,
-    "status": "pending",
+    "status": "cancelled",
     "renewalDate": "2026-08-22",
     "endDate": "2027-07-22",
     "cancelToken": "bc41f7458d5094cb9316b284aae29e15",
