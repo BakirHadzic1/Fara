@@ -572,6 +572,10 @@ function initAdminPanel() {
   const createNote = document.getElementById('adminCreateNote');
   const createPaid = document.getElementById('adminCreatePaid');
   const createMessage = document.getElementById('adminCreateMessage');
+  const adminWeekGrid = document.getElementById('adminWeekGrid');
+  const adminWeekLabel = document.getElementById('adminWeekLabel');
+  const adminPrevWeek = document.getElementById('adminPrevWeek');
+  const adminNextWeek = document.getElementById('adminNextWeek');
   const loginPanel = document.getElementById('adminLogin');
   const loginForm = document.getElementById('adminLoginForm');
   const loginError = document.getElementById('adminLoginError');
@@ -581,6 +585,8 @@ function initAdminPanel() {
   let adminPin = sessionStorage.getItem('faraAdminPin') || '';
   let adminBookings = [];
   const today = new Date().toISOString().slice(0, 10);
+  const adminTimeSlots = [];
+  let adminWeekStart = startOfWeek(toLocalDate(today));
 
   if (createDate) {
     createDate.min = today;
@@ -590,12 +596,19 @@ function initAdminPanel() {
   if (createTime) {
     for (let hour = 8; hour <= 22; hour += 1) {
       const value = `${String(hour).padStart(2, '0')}:00`;
+      adminTimeSlots.push(value);
       const option = document.createElement('option');
       option.value = value;
       option.textContent = `${value} - ${String(hour + 1).padStart(2, '0')}:00`;
       createTime.appendChild(option);
     }
     createTime.value = '18:00';
+  }
+
+  if (!adminTimeSlots.length) {
+    for (let hour = 8; hour <= 22; hour += 1) {
+      adminTimeSlots.push(`${String(hour).padStart(2, '0')}:00`);
+    }
   }
 
   function inCurrentWeek(dateString) {
@@ -647,6 +660,50 @@ function initAdminPanel() {
       .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
   }
 
+  function bookingForSlot(date, time) {
+    return adminBookings.find(item => bookingsConflict(item, { date, time, type: 'single' }));
+  }
+
+  function renderAdminWeekSchedule() {
+    if (!adminWeekGrid || !adminWeekLabel) return;
+    const days = Array.from({ length: 7 }, (_, index) => addDays(adminWeekStart, index));
+    adminWeekLabel.textContent = `${shortDate(days[0])} - ${shortDate(days[6])}`;
+
+    const head = days.map(day => {
+      const value = toDateInputValue(day);
+      const label = `${DAY_SHORT[day.getDay()]} ${String(day.getDate()).padStart(2, '0')}.${String(day.getMonth() + 1).padStart(2, '0')}.`;
+      return `<th>${label}${value === today ? '<small>Danas</small>' : ''}</th>`;
+    }).join('');
+
+    const rows = adminTimeSlots.map(time => {
+      const cells = days.map(day => {
+        const dateValue = toDateInputValue(day);
+        const past = dateValue < today;
+        const closed = isSlotClosed(dateValue, time);
+        const booking = bookingForSlot(dateValue, time);
+        const state = booking ? 'busy' : past ? 'past' : closed ? 'closed' : 'free';
+        const label = booking ? (booking.name || 'Zauzeto') : past ? 'Prošlo' : closed ? 'Zatvoreno' : 'Slobodno';
+        const detail = booking ? `${booking.type === 'monthly' ? 'Stalni' : 'Jedan'}${booking.paid ? ' · Plaćeno' : ' · Nije plaćeno'}` : '';
+        return `
+          <td>
+            <button type="button" class="admin-slot ${state}" data-date="${dateValue}" data-time="${time}" ${booking ? `data-booking-id="${booking.id}"` : ''}>
+              <strong>${label}</strong>
+              ${detail ? `<small>${detail}</small>` : ''}
+            </button>
+          </td>
+        `;
+      }).join('');
+      return `<tr><td>${time}</td>${cells}</tr>`;
+    }).join('');
+
+    adminWeekGrid.innerHTML = `
+      <table class="admin-week-table">
+        <thead><tr><th>Sat</th>${head}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
   function render() {
     const bookings = filteredBookings();
     tableBody.innerHTML = '';
@@ -672,6 +729,7 @@ function initAdminPanel() {
       tableBody.appendChild(tr);
     });
     updateStats();
+    renderAdminWeekSchedule();
   }
 
   async function refreshAdmin() {
@@ -721,6 +779,32 @@ function initAdminPanel() {
   });
 
   [dateFilter, statusFilter, searchFilter].forEach(input => input.addEventListener('input', render));
+
+  if (adminPrevWeek) {
+    adminPrevWeek.addEventListener('click', () => {
+      adminWeekStart = addDays(adminWeekStart, -7);
+      renderAdminWeekSchedule();
+    });
+  }
+
+  if (adminNextWeek) {
+    adminNextWeek.addEventListener('click', () => {
+      adminWeekStart = addDays(adminWeekStart, 7);
+      renderAdminWeekSchedule();
+    });
+  }
+
+  if (adminWeekGrid) {
+    adminWeekGrid.addEventListener('click', event => {
+      const slot = event.target.closest('.admin-slot');
+      if (!slot || !slot.dataset.date) return;
+      dateFilter.value = slot.dataset.date;
+      searchFilter.value = '';
+      statusFilter.value = 'all';
+      render();
+      document.getElementById('rezervacije')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
 
   if (exportButton) {
     exportButton.addEventListener('click', () => {

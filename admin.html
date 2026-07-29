@@ -20,8 +20,9 @@
     <nav class="admin-side-nav" aria-label="Admin navigacija">
       <a href="#pregled" class="active"><span>01</span>Pregled</a>
       <a href="#unos"><span>02</span>Dodaj termin</a>
-      <a href="#rezervacije"><span>03</span>Rezervacije</a>
-      <a href="index.html"><span>04</span>Stranica</a>
+      <a href="#raspored"><span>03</span>Raspored</a>
+      <a href="#rezervacije"><span>04</span>Rezervacije</a>
+      <a href="index.html"><span>05</span>Stranica</a>
     </nav>
     <div class="admin-side-status">
       <span>Online sistem</span>
@@ -144,6 +145,27 @@
             <span><strong>200 KM</strong> stalni mjesečni termin</span>
           </div>
         </section>
+      </section>
+
+      <section class="admin-panel admin-schedule-panel" id="raspored">
+        <div class="admin-toolbar">
+          <div>
+            <span class="section-eyebrow">Sedmični raspored</span>
+            <h2>Tabela termina</h2>
+          </div>
+          <div class="week-actions">
+            <button type="button" class="week-nav" id="adminPrevWeek" aria-label="Prethodna sedmica">‹</button>
+            <strong id="adminWeekLabel">Učitavanje...</strong>
+            <button type="button" class="week-nav" id="adminNextWeek" aria-label="Sljedeća sedmica">›</button>
+          </div>
+        </div>
+        <div class="schedule-legend admin-schedule-legend">
+          <span><i class="free"></i>Slobodno</span>
+          <span><i class="busy"></i>Zauzeto</span>
+          <span><i class="closed"></i>Zatvoreno</span>
+          <span><i class="past"></i>Prošlo</span>
+        </div>
+        <div class="admin-week-table-wrap" id="adminWeekGrid"></div>
       </section>
 
       <section class="admin-panel admin-table-panel" id="rezervacije">
