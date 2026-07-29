@@ -360,6 +360,9 @@ module.exports = async function handler(req, res) {
       if (!date || !time || !name || !phone) {
         return send(res, 400, { error: 'Datum, vrijeme, ime i telefon su obavezni.' });
       }
+      if (type === 'monthly' && !adminRequest) {
+        return send(res, 403, { error: 'Stalni mjesečni termini se dogovaraju telefonom na 062 290 622.' });
+      }
       if (isSlotClosed(date, time)) {
         return send(res, 400, { error: 'Nedjeljom su dostupni termini od 12:00 do 22:00.' });
       }
