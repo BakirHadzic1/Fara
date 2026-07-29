@@ -255,7 +255,7 @@
           <div class="amount">30 KM</div>
         </div>
         <div class="price-row">
-          <div class="label">Mjesečno<small>fiksni termin svake sedmice</small></div>
+          <div class="label">Mjesečno<small>fiksni termin svake sedmice — dogovor telefonom</small></div>
           <div class="amount">200 KM</div>
         </div>
         <button type="button" class="btn btn-primary cta booking-trigger">Rezervišite termin</button>
@@ -282,7 +282,7 @@
     <div class="sport-info-grid reveal">
       <div class="sport-info-card">
         <h3>Rezervacije termina</h3>
-        <p>Za salu je najbolje termin dogovoriti unaprijed, posebno za večernje sate i stalne sedmične grupe.</p>
+        <p>Jedan termin možete rezervisati online. Za stalne sedmične termine javite se na 062 290 622, a osoblje ih upisuje kroz admin panel.</p>
       </div>
       <div class="sport-info-card">
         <h3>Teretana</h3>
@@ -419,7 +419,7 @@
       <div class="booking-copy">
         <span class="section-eyebrow">Rezervacija sale</span>
         <h2 id="bookingTitle">Odaberite termin</h2>
-        <p>Izaberite datum, sat i tip rezervacije. Nakon slanja, vaš termin ostaje zabilježen u rasporedu i admin panelu.</p>
+        <p>Izaberite datum i sat za jedan termin. Za stalni mjesečni termin nazovite 062 290 622.</p>
         <div class="booking-summary" id="bookingSummary">
           <span>Termin</span>
           <strong>50 KM</strong>
@@ -452,23 +452,14 @@
         <label>Vrijeme
           <select id="bookingTime" name="time" required></select>
         </label>
-        <label>Tip termina
-          <select id="bookingType" name="type" required>
-            <option value="single">Jedan termin</option>
-            <option value="monthly">Stalni mjesečni termin</option>
-          </select>
-        </label>
-        <label class="monthly-field" id="bookingMonthsWrap">Na koliko mjeseci
-          <select id="bookingMonths" name="months">
-            <option value="1">1 mjesec</option>
-            <option value="2">2 mjeseca</option>
-            <option value="3">3 mjeseca</option>
-            <option value="4">4 mjeseca</option>
-            <option value="5">5 mjeseci</option>
-            <option value="6">6 mjeseci</option>
-            <option value="12">12 mjeseci</option>
-          </select>
-        </label>
+        <input type="hidden" id="bookingType" name="type" value="single">
+        <div class="monthly-field" id="bookingMonthsWrap" hidden>
+          <input type="hidden" id="bookingMonths" name="months" value="1">
+        </div>
+        <div class="booking-policy">
+          <strong>Stalni mjesečni termini</strong>
+          <p>Stalne termine ne možete rezervisati online. Za dogovor nazovite <a href="tel:+38762290622">062 290 622</a>, a osoblje će termin upisati kroz admin panel.</p>
+        </div>
         <label>Kategorija
           <select id="bookingCategory" name="category" required>
             <option value="standard">Standardni termin</option>
@@ -487,11 +478,11 @@
           <input type="email" name="email" autocomplete="email" placeholder="za podsjetnik o produženju">
         </label>
         <label>Napomena
-          <textarea name="note" rows="3" placeholder="npr. mali fudbal, stalna grupa, poseban zahtjev"></textarea>
+          <textarea name="note" rows="3" placeholder="npr. mali fudbal, poseban zahtjev"></textarea>
         </label>
         <div class="booking-policy">
           <strong>Otkazivanje i izmjene termina</strong>
-          <p>Za otkazivanje ili izmjenu termina nazovite <a href="tel:+38762290622">062 290 622</a> najkasnije isti dan do 16:00. Ako korisnik ne dođe i ne najavi odsustvo, termin se obračunava kao iskorišten. Stalni mjesečni termin ostaje rezervisan, a pojedinačni termin se može privremeno izdati drugom korisniku samo uz prethodni dogovor.</p>
+          <p>Za otkazivanje ili izmjenu termina nazovite <a href="tel:+38762290622">062 290 622</a> najkasnije isti dan do 16:00. Ako korisnik ne dođe i ne najavi odsustvo, termin se obračunava kao iskorišten.</p>
         </div>
         <div class="own-bookings" id="ownBookings" hidden>
           <span class="mini-label">Rezervacija poslana</span>
