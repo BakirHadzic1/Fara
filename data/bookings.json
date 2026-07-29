@@ -660,5 +660,27 @@
     "cancelToken": "8dd003f7dbac1682fa7a1385266b7f6e",
     "adminEmail": "fara.termini@gmail.com",
     "source": "manual-standing-terms-2026"
+  },
+  {
+    "id": "fara-1785331305648",
+    "createdAt": "2026-07-29T13:21:45.648Z",
+    "date": "2026-07-29",
+    "day": "srijeda",
+    "time": "18:00",
+    "type": "single",
+    "months": 1,
+    "category": "standard",
+    "name": "nermin",
+    "phone": "061182484",
+    "email": "",
+    "note": "",
+    "price": 50,
+    "paid": false,
+    "status": "pending",
+    "renewalDate": "",
+    "endDate": "",
+    "cancelToken": "701ba5db64beaed712cf5ee16aff69e5",
+    "adminEmail": "fara.termini@gmail.com",
+    "source": "web"
   }
 ]
