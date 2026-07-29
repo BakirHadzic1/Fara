@@ -212,7 +212,6 @@ module.exports = async function handler(req, res) {
             firstName: cleanText(body.firstName, 80),
             lastName: cleanText(body.lastName, 80),
             phone: cleanText(body.phone, 40),
-            photo: cleanText(body.photo, 350000),
             note: cleanText(body.note, 800),
             membershipTypeId: type.id,
             startDate: cleanText(body.startDate, 20) || todayValue(),

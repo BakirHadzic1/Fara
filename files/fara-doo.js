@@ -639,7 +639,6 @@ function initAdminPanel() {
   const gymFirstName = document.getElementById('gymFirstName');
   const gymLastName = document.getElementById('gymLastName');
   const gymPhone = document.getElementById('gymPhone');
-  const gymPhoto = document.getElementById('gymPhoto');
   const gymMembershipType = document.getElementById('gymMembershipType');
   const gymStartDate = document.getElementById('gymStartDate');
   const gymEndDate = document.getElementById('gymEndDate');
@@ -658,7 +657,6 @@ function initAdminPanel() {
   let adminPin = sessionStorage.getItem('faraAdminPin') || '';
   let adminBookings = [];
   let gymData = { membershipTypes: [], members: [], payments: [], visits: [] };
-  let gymPhotoData = '';
   const today = new Date().toISOString().slice(0, 10);
   const adminTimeSlots = [];
   let adminWeekStart = startOfWeek(toLocalDate(today));
@@ -917,7 +915,6 @@ function initAdminPanel() {
       tr.innerHTML = `
         <td>
           <div class="gym-member-cell">
-            <span class="gym-avatar">${member.photo ? `<img src="${member.photo}" alt="">` : (member.firstName || '?').slice(0, 1)}</span>
             <span><strong>${memberFullName(member)}</strong><small>${member.phone}${member.note ? ` · ${member.note}` : ''}</small></span>
           </div>
         </td>
@@ -961,7 +958,6 @@ function initAdminPanel() {
     if (!gymMemberForm) return;
     gymMemberForm.reset();
     if (gymMemberId) gymMemberId.value = '';
-    gymPhotoData = '';
     if (gymStartDate) gymStartDate.value = today;
     if (document.getElementById('gymFormTitle')) document.getElementById('gymFormTitle').textContent = 'Dodaj člana';
     renderGymTypes();
@@ -979,20 +975,8 @@ function initAdminPanel() {
     gymEndDate.value = member.endDate || today;
     gymNote.value = member.note || '';
     if (gymPaidNow) gymPaidNow.checked = false;
-    gymPhotoData = member.photo || '';
     if (document.getElementById('gymFormTitle')) document.getElementById('gymFormTitle').textContent = 'Uredi člana';
     document.getElementById('teretana')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function readGymPhoto() {
-    return new Promise(resolve => {
-      const file = gymPhoto?.files?.[0];
-      if (!file) return resolve(gymPhotoData);
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ''));
-      reader.onerror = () => resolve(gymPhotoData);
-      reader.readAsDataURL(file);
-    });
   }
 
   async function refreshAdmin() {
@@ -1099,13 +1083,11 @@ function initAdminPanel() {
         button.textContent = 'Čuvam...';
       }
       try {
-        const photo = await readGymPhoto();
         await gymAction(adminPin, 'saveMember', {
           id: gymMemberId.value,
           firstName: gymFirstName.value.trim(),
           lastName: gymLastName.value.trim(),
           phone: gymPhone.value.trim(),
-          photo,
           note: gymNote.value.trim(),
           membershipTypeId: gymMembershipType.value,
           startDate: gymStartDate.value,
