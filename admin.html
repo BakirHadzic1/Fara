@@ -11,118 +11,152 @@
 </head>
 <body class="admin-page">
 
-<header class="site-header scrolled" id="siteHeader">
-  <a href="index.html#top" class="logo">
-    <span class="logo-text">FARA<span>.</span></span>
-  </a>
-  <nav class="nav" id="mainNav">
-    <a href="index.html#sport" data-close>Sport Centar</a>
-    <a href="index.html#kontakt" data-close>Kontakt</a>
-    <a href="index.html" data-close>Stranica</a>
-  </nav>
-  <button class="nav-toggle" id="navToggle" aria-label="Meni">
-    <span></span><span></span><span></span>
-  </button>
-</header>
-
-<main class="admin-main">
-  <div class="admin-hero">
-    <div>
-      <span class="section-eyebrow">Admin panel</span>
-      <h1>Rezervacije i naplata</h1>
-      <p>Pregled termina, statusa plaćanja i zarade. Rezervacije su povezane online i dostupne na svim uređajima.</p>
+<div class="admin-app">
+  <aside class="admin-sidebar">
+    <a href="index.html#top" class="admin-brand" aria-label="FARA početna">
+      <span>FARA<span>.</span></span>
+      <small>Sport Centar</small>
+    </a>
+    <nav class="admin-side-nav" aria-label="Admin navigacija">
+      <a href="#pregled" class="active"><span>01</span>Pregled</a>
+      <a href="#unos"><span>02</span>Dodaj termin</a>
+      <a href="#rezervacije"><span>03</span>Rezervacije</a>
+      <a href="index.html"><span>04</span>Stranica</a>
+    </nav>
+    <div class="admin-side-status">
+      <span>Online sistem</span>
+      <strong>Aktivan</strong>
+      <small>Rezervacije se čuvaju online</small>
     </div>
-    <a href="index.html#sport" class="btn btn-primary">Nazad na stranicu</a>
-  </div>
+  </aside>
 
-  <section class="admin-panel admin-login" id="adminLogin">
-    <span class="section-eyebrow">Pristup</span>
-    <h2>Unesite admin PIN</h2>
-    <form class="admin-filter" id="adminLoginForm">
-      <label>PIN
-        <input type="password" id="adminPin" autocomplete="current-password" required>
-      </label>
-      <button class="btn btn-primary" type="submit">Otvori panel</button>
-    </form>
-    <p class="booking-message error" id="adminLoginError"></p>
-  </section>
-
-  <div id="adminContent" hidden>
-    <section class="admin-stats" aria-label="Statistika zarade">
-      <div class="admin-stat">
-        <span>Danas plaćeno</span>
-        <strong id="statToday">0 KM</strong>
+  <main class="admin-main">
+    <section class="admin-topbar" id="pregled">
+      <div>
+        <span class="section-eyebrow">Admin panel</span>
+        <h1>Rezervacije i naplata</h1>
+        <p>Pregled termina, statusa plaćanja i zarade. Sve promjene odmah se vide online.</p>
       </div>
-      <div class="admin-stat">
-        <span>Sedmica plaćeno</span>
-        <strong id="statWeek">0 KM</strong>
-      </div>
-      <div class="admin-stat">
-        <span>Mjesec plaćeno</span>
-        <strong id="statMonth">0 KM</strong>
-      </div>
-      <div class="admin-stat">
-        <span>Danas / neplaćeno</span>
-        <strong id="statOpen">0 / 0</strong>
+      <div class="admin-top-actions">
+        <a href="index.html#rezervacija" class="btn btn-ghost">Raspored</a>
+        <a href="index.html" class="btn btn-primary">Stranica</a>
       </div>
     </section>
 
-    <section class="admin-panel">
-      <div class="admin-form-head">
-        <div>
-          <span class="section-eyebrow">Ručni unos</span>
-          <h2>Dodaj termin</h2>
-        </div>
-        <p>Za telefonske rezervacije ili termine koje osoblje upisuje direktno.</p>
-      </div>
-      <form class="admin-create-form" id="adminCreateForm">
-        <label>Datum
-          <input type="date" id="adminCreateDate" required>
+    <section class="admin-panel admin-login" id="adminLogin">
+      <span class="section-eyebrow">Pristup</span>
+      <h2>Unesite admin PIN</h2>
+      <form class="admin-filter" id="adminLoginForm">
+        <label>PIN
+          <input type="password" id="adminPin" autocomplete="current-password" required>
         </label>
-        <label>Termin
-          <select id="adminCreateTime" required></select>
-        </label>
-        <label>Tip
-          <select id="adminCreateType">
-            <option value="single">Jedan termin</option>
-            <option value="monthly">Stalni mjesečni</option>
-          </select>
-        </label>
-        <label id="adminCreateMonthsWrap" hidden>Period
-          <select id="adminCreateMonths">
-            <option value="1">1 mjesec</option>
-            <option value="2">2 mjeseca</option>
-            <option value="3">3 mjeseca</option>
-            <option value="6">6 mjeseci</option>
-            <option value="12">12 mjeseci</option>
-          </select>
-        </label>
-        <label>Kategorija
-          <select id="adminCreateCategory">
-            <option value="standard">Standardni termin</option>
-            <option value="school">Školarci / klubovi</option>
-          </select>
-        </label>
-        <label>Ime
-          <input type="text" id="adminCreateName" placeholder="Ime ekipe ili osobe" required>
-        </label>
-        <label>Telefon
-          <input type="tel" id="adminCreatePhone" placeholder="062 290 622" required>
-        </label>
-        <label>Napomena
-          <input type="text" id="adminCreateNote" placeholder="Npr. dogovoreno telefonom">
-        </label>
-        <label class="admin-check">
-          <input type="checkbox" id="adminCreatePaid">
-          <span>Odmah označi kao plaćeno</span>
-        </label>
-        <button class="btn btn-primary" type="submit">Dodaj termin</button>
+        <button class="btn btn-primary" type="submit">Otvori panel</button>
       </form>
-      <p class="booking-message" id="adminCreateMessage"></p>
+      <p class="booking-message error" id="adminLoginError"></p>
     </section>
 
-    <section class="admin-panel">
-      <div class="admin-toolbar">
+    <div id="adminContent" hidden>
+      <section class="admin-stats" aria-label="Statistika zarade">
+        <div class="admin-stat accent-green">
+          <span>Danas plaćeno</span>
+          <strong id="statToday">0 KM</strong>
+          <small>naplaćeno danas</small>
+        </div>
+        <div class="admin-stat accent-blue">
+          <span>Sedmica plaćeno</span>
+          <strong id="statWeek">0 KM</strong>
+          <small>ukupno za sedmicu</small>
+        </div>
+        <div class="admin-stat accent-gold">
+          <span>Mjesec plaćeno</span>
+          <strong id="statMonth">0 KM</strong>
+          <small>mjesečni pregled</small>
+        </div>
+        <div class="admin-stat accent-red">
+          <span>Danas / neplaćeno</span>
+          <strong id="statOpen">0 / 0</strong>
+          <small>termini i otvorena plaćanja</small>
+        </div>
+      </section>
+
+      <section class="admin-dashboard-grid">
+        <section class="admin-panel admin-create-panel" id="unos">
+          <div class="admin-form-head">
+            <div>
+              <span class="section-eyebrow">Ručni unos</span>
+              <h2>Dodaj termin</h2>
+            </div>
+            <p>Za telefonske rezervacije, stalne termine i dogovore koje osoblje upisuje direktno.</p>
+          </div>
+          <form class="admin-create-form" id="adminCreateForm">
+            <label>Datum
+              <input type="date" id="adminCreateDate" required>
+            </label>
+            <label>Termin
+              <select id="adminCreateTime" required></select>
+            </label>
+            <label>Tip
+              <select id="adminCreateType">
+                <option value="single">Jedan termin</option>
+                <option value="monthly">Stalni mjesečni</option>
+              </select>
+            </label>
+            <label id="adminCreateMonthsWrap" hidden>Period
+              <select id="adminCreateMonths">
+                <option value="1">1 mjesec</option>
+                <option value="2">2 mjeseca</option>
+                <option value="3">3 mjeseca</option>
+                <option value="6">6 mjeseci</option>
+                <option value="12">12 mjeseci</option>
+              </select>
+            </label>
+            <label>Kategorija
+              <select id="adminCreateCategory">
+                <option value="standard">Standardni termin</option>
+                <option value="school">Školarci / klubovi</option>
+              </select>
+            </label>
+            <label>Ime
+              <input type="text" id="adminCreateName" placeholder="Ime ekipe ili osobe" required>
+            </label>
+            <label>Telefon
+              <input type="tel" id="adminCreatePhone" placeholder="062 290 622" required>
+            </label>
+            <label>Napomena
+              <input type="text" id="adminCreateNote" placeholder="Npr. dogovoreno telefonom">
+            </label>
+            <label class="admin-check">
+              <input type="checkbox" id="adminCreatePaid">
+              <span>Odmah označi kao plaćeno</span>
+            </label>
+            <button class="btn btn-primary" type="submit">Dodaj termin</button>
+          </form>
+          <p class="booking-message" id="adminCreateMessage"></p>
+        </section>
+
+        <section class="admin-panel admin-help-panel">
+          <span class="section-eyebrow">Brzi podsjetnik</span>
+          <h2>Stalni termini</h2>
+          <p>Stalne mjesečne termine unosi samo osoblje. Korisnici na stranici vide da trebaju nazvati 062 290 622.</p>
+          <div class="admin-mini-list">
+            <span><strong>50 KM</strong> jedan termin</span>
+            <span><strong>30 KM</strong> 08–16h za škole i klubove</span>
+            <span><strong>200 KM</strong> stalni mjesečni termin</span>
+          </div>
+        </section>
+      </section>
+
+      <section class="admin-panel admin-table-panel" id="rezervacije">
+        <div class="admin-toolbar">
+          <div>
+            <span class="section-eyebrow">Pregled</span>
+            <h2>Rezervacije</h2>
+          </div>
+          <div class="admin-actions">
+            <button class="btn btn-primary" type="button" id="exportBookings">Export</button>
+            <button class="btn btn-ghost" type="button" id="seedDemoBooking">Test unos</button>
+          </div>
+        </div>
         <div class="admin-filter">
           <label>Datum
             <input type="date" id="adminDateFilter">
@@ -139,31 +173,27 @@
             <input type="search" id="adminSearchFilter" placeholder="ime, telefon, email">
           </label>
         </div>
-        <div class="admin-actions">
-          <button class="btn btn-primary" type="button" id="exportBookings">Export</button>
-          <button class="btn btn-ghost" type="button" id="seedDemoBooking">Test unos</button>
-        </div>
-      </div>
 
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Termin</th>
-              <th>Korisnik</th>
-              <th>Tip</th>
-              <th>Iznos</th>
-              <th>Status</th>
-              <th>Akcije</th>
-            </tr>
-          </thead>
-          <tbody id="adminBookings"></tbody>
-        </table>
-      </div>
-      <p class="empty-state" id="adminEmpty">Još nema rezervacija.</p>
-    </section>
-  </div>
-</main>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Termin</th>
+                <th>Korisnik</th>
+                <th>Tip</th>
+                <th>Iznos</th>
+                <th>Status</th>
+                <th>Akcije</th>
+              </tr>
+            </thead>
+            <tbody id="adminBookings"></tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="adminEmpty">Još nema rezervacija.</p>
+      </section>
+    </div>
+  </main>
+</div>
 
 <script src="fara-doo.js"></script>
 </body>
