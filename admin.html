@@ -18,11 +18,10 @@
       <small>Sport Centar</small>
     </a>
     <nav class="admin-side-nav" aria-label="Admin navigacija">
-      <a href="#pregled" class="active"><span>01</span>Pregled</a>
-      <a href="#unos"><span>02</span>Dodaj termin</a>
-      <a href="#raspored"><span>03</span>Raspored</a>
-      <a href="#rezervacije"><span>04</span>Rezervacije</a>
-      <a href="index.html"><span>05</span>Stranica</a>
+      <a href="#termini" class="active" data-admin-view="terms"><span>01</span>Termini</a>
+      <a href="#teretana" data-admin-view="gym"><span>02</span>Teretana</a>
+      <a href="#raspored" data-admin-view="terms"><span>03</span>Raspored</a>
+      <a href="index.html"><span>04</span>Stranica</a>
     </nav>
     <div class="admin-side-status">
       <span>Online sistem</span>
@@ -57,6 +56,7 @@
     </section>
 
     <div id="adminContent" hidden>
+      <section class="admin-module active" id="termsModule" data-admin-module="terms">
       <section class="admin-stats" aria-label="Statistika zarade">
         <div class="admin-stat accent-green">
           <span>Danas plaćeno</span>
@@ -212,6 +212,126 @@
           </table>
         </div>
         <p class="empty-state" id="adminEmpty">Još nema rezervacija.</p>
+      </section>
+      </section>
+
+      <section class="admin-module" id="teretana" data-admin-module="gym">
+        <section class="admin-stats" aria-label="Statistika teretane">
+          <div class="admin-stat accent-green">
+            <span>Aktivni članovi</span>
+            <strong id="gymStatActive">0</strong>
+            <small>trenutno važećih članarina</small>
+          </div>
+          <div class="admin-stat accent-gold">
+            <span>Uskoro ističe</span>
+            <strong id="gymStatExpiring">0</strong>
+            <small>u narednih 7 dana</small>
+          </div>
+          <div class="admin-stat accent-red">
+            <span>Isteklo</span>
+            <strong id="gymStatExpired">0</strong>
+            <small>članarine za obnovu</small>
+          </div>
+          <div class="admin-stat accent-blue">
+            <span>Zarada mjesec</span>
+            <strong id="gymStatRevenue">0 KM</strong>
+            <small>uplate u ovom mjesecu</small>
+          </div>
+        </section>
+
+        <section class="admin-dashboard-grid">
+          <section class="admin-panel admin-create-panel">
+            <div class="admin-form-head">
+              <div>
+                <span class="section-eyebrow">Teretana</span>
+                <h2 id="gymFormTitle">Dodaj člana</h2>
+              </div>
+              <p>Unos članova, članarina, uplata i dolazaka za Farinu teretanu.</p>
+            </div>
+            <form class="admin-create-form gym-member-form" id="gymMemberForm">
+              <input type="hidden" id="gymMemberId">
+              <label>Ime
+                <input type="text" id="gymFirstName" required>
+              </label>
+              <label>Prezime
+                <input type="text" id="gymLastName">
+              </label>
+              <label>Telefon
+                <input type="tel" id="gymPhone" required>
+              </label>
+              <label>Fotografija
+                <input type="file" id="gymPhoto" accept="image/*">
+              </label>
+              <label>Vrsta članarine
+                <select id="gymMembershipType" required></select>
+              </label>
+              <label>Početak
+                <input type="date" id="gymStartDate" required>
+              </label>
+              <label>Istek
+                <input type="date" id="gymEndDate" required>
+              </label>
+              <label>Napomena
+                <input type="text" id="gymNote" placeholder="Npr. povreda, dogovor, posebna napomena">
+              </label>
+              <label class="admin-check">
+                <input type="checkbox" id="gymPaidNow">
+                <span>Odmah evidentiraj uplatu</span>
+              </label>
+              <button class="btn btn-primary" type="submit">Sačuvaj člana</button>
+              <button class="btn btn-ghost" type="button" id="gymResetForm">Novi unos</button>
+            </form>
+            <p class="booking-message" id="gymMessage"></p>
+          </section>
+
+          <section class="admin-panel admin-help-panel">
+            <span class="section-eyebrow">Cijene</span>
+            <h2>Članarine</h2>
+            <div class="admin-mini-list" id="gymTypeList"></div>
+          </section>
+        </section>
+
+        <section class="admin-panel admin-table-panel">
+          <div class="admin-toolbar">
+            <div>
+              <span class="section-eyebrow">Pregled</span>
+              <h2>Članovi</h2>
+            </div>
+            <div class="admin-actions">
+              <button class="btn btn-primary" type="button" id="gymExport">Export</button>
+            </div>
+          </div>
+          <div class="admin-filter">
+            <label>Status
+              <select id="gymStatusFilter">
+                <option value="all">Svi</option>
+                <option value="active">Aktivni</option>
+                <option value="expiring">Uskoro ističu</option>
+                <option value="expired">Istekli</option>
+                <option value="debt">Dugovanja</option>
+              </select>
+            </label>
+            <label>Pretraga
+              <input type="search" id="gymSearchFilter" placeholder="ime, prezime, telefon">
+            </label>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table gym-table">
+              <thead>
+                <tr>
+                  <th>Član</th>
+                  <th>Članarina</th>
+                  <th>Uplate / dug</th>
+                  <th>Dolasci</th>
+                  <th>Status</th>
+                  <th>Akcije</th>
+                </tr>
+              </thead>
+              <tbody id="gymMembers"></tbody>
+            </table>
+          </div>
+          <p class="empty-state" id="gymEmpty">Još nema članova.</p>
+        </section>
       </section>
     </div>
   </main>

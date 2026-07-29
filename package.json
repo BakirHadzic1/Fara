@@ -7,7 +7,7 @@
   "main": "electron/main.js",
   "productName": "FARA Admin",
   "scripts": {
-    "check": "node --check fara-doo.js && node --check files/fara-doo.js && node --check api/bookings.js && node --check electron/main.js && node --check electron/desktop-admin.js",
+    "check": "node --check fara-doo.js && node --check files/fara-doo.js && node --check api/bookings.js && node --check api/gym.js && node --check electron/main.js && node --check electron/desktop-admin.js",
     "desktop": "electron electron/main.js",
     "desktop:pack": "electron-builder --mac --dir",
     "desktop:build": "electron-builder --mac --universal",

@@ -1,0 +1,30 @@
+{
+  "tenants": {
+    "fara-sport-centar": {
+      "name": "FARA Sport Centar",
+      "membershipTypes": [
+        {
+          "id": "daily",
+          "name": "Dnevna karta",
+          "price": 5,
+          "durationDays": 1
+        },
+        {
+          "id": "monthly-until-16",
+          "name": "Mjesečna do 16h",
+          "price": 30,
+          "durationDays": 30
+        },
+        {
+          "id": "monthly-regular",
+          "name": "Mjesečna redovna",
+          "price": 40,
+          "durationDays": 30
+        }
+      ],
+      "members": [],
+      "payments": [],
+      "visits": []
+    }
+  }
+}

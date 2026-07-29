@@ -1,6 +1,8 @@
 const STORAGE_KEY = 'faraSportBookings';
 const MY_BOOKINGS_KEY = 'faraMyBookings';
 const API_URL = '/api/bookings';
+const GYM_API_URL = '/api/gym';
+const GYM_TENANT_ID = 'fara-sport-centar';
 const DAY_NAMES = ['nedjelja', 'ponedjeljak', 'utorak', 'srijeda', 'četvrtak', 'petak', 'subota'];
 const DAY_SHORT = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub'];
 
@@ -110,6 +112,34 @@ async function updateBookingOnline(id, action, adminPin) {
   });
 }
 
+async function requestGym(adminPin, options = {}) {
+  const response = await fetch(GYM_API_URL, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Pin': adminPin,
+      ...(options.headers || {})
+    }
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Greška pri učitavanju teretane.');
+  return data;
+}
+
+async function loadGym(adminPin) {
+  const data = await requestGym(adminPin, {
+    method: 'GET'
+  });
+  return data.tenant || { membershipTypes: [], members: [], payments: [], visits: [] };
+}
+
+async function gymAction(adminPin, action, payload = {}) {
+  return requestGym(adminPin, {
+    method: 'POST',
+    body: JSON.stringify({ action, tenantId: GYM_TENANT_ID, ...payload })
+  });
+}
+
 function bookingMonths(value) {
   const months = Number(value || 1);
   if (!Number.isFinite(months)) return 1;
@@ -136,6 +166,28 @@ function bookingTypeLabel(type) {
 
 function categoryLabel(category) {
   return category === 'school' ? 'Školarci / akademije / klubovi' : 'Standardni termin';
+}
+
+function gymStatus(member) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!member?.endDate || member.endDate < today) return 'expired';
+  if (member.endDate <= toDateInputValue(addDays(toLocalDate(today), 7))) return 'expiring';
+  return 'active';
+}
+
+function gymStatusLabel(status) {
+  if (status === 'active') return 'Aktivno';
+  if (status === 'expiring') return 'Uskoro ističe';
+  if (status === 'expired') return 'Isteklo';
+  return 'Nepoznato';
+}
+
+function money(value) {
+  return `${Number(value || 0)} KM`;
+}
+
+function memberFullName(member) {
+  return `${member.firstName || ''} ${member.lastName || ''}`.trim();
 }
 
 function nextRenewalDate(dateString) {
@@ -580,10 +632,33 @@ function initAdminPanel() {
   const loginForm = document.getElementById('adminLoginForm');
   const loginError = document.getElementById('adminLoginError');
   const adminContent = document.getElementById('adminContent');
+  const adminNavLinks = document.querySelectorAll('[data-admin-view]');
+  const adminModules = document.querySelectorAll('[data-admin-module]');
+  const gymMemberForm = document.getElementById('gymMemberForm');
+  const gymMemberId = document.getElementById('gymMemberId');
+  const gymFirstName = document.getElementById('gymFirstName');
+  const gymLastName = document.getElementById('gymLastName');
+  const gymPhone = document.getElementById('gymPhone');
+  const gymPhoto = document.getElementById('gymPhoto');
+  const gymMembershipType = document.getElementById('gymMembershipType');
+  const gymStartDate = document.getElementById('gymStartDate');
+  const gymEndDate = document.getElementById('gymEndDate');
+  const gymNote = document.getElementById('gymNote');
+  const gymPaidNow = document.getElementById('gymPaidNow');
+  const gymResetForm = document.getElementById('gymResetForm');
+  const gymMessage = document.getElementById('gymMessage');
+  const gymTypeList = document.getElementById('gymTypeList');
+  const gymStatusFilter = document.getElementById('gymStatusFilter');
+  const gymSearchFilter = document.getElementById('gymSearchFilter');
+  const gymMembersBody = document.getElementById('gymMembers');
+  const gymEmpty = document.getElementById('gymEmpty');
+  const gymExport = document.getElementById('gymExport');
   if (!tableBody || !empty || !dateFilter || !statusFilter || !searchFilter) return;
 
   let adminPin = sessionStorage.getItem('faraAdminPin') || '';
   let adminBookings = [];
+  let gymData = { membershipTypes: [], members: [], payments: [], visits: [] };
+  let gymPhotoData = '';
   const today = new Date().toISOString().slice(0, 10);
   const adminTimeSlots = [];
   let adminWeekStart = startOfWeek(toLocalDate(today));
@@ -610,6 +685,35 @@ function initAdminPanel() {
       adminTimeSlots.push(`${String(hour).padStart(2, '0')}:00`);
     }
   }
+
+  if (gymStartDate) gymStartDate.value = today;
+
+  function setAdminView(view, activeHref = '') {
+    adminModules.forEach(module => {
+      module.classList.toggle('active', module.dataset.adminModule === view);
+    });
+    adminNavLinks.forEach(link => {
+      const href = link.getAttribute('href') || '';
+      const isActive = activeHref ? href === activeHref : link.dataset.adminView === view && href !== '#raspored';
+      link.classList.toggle('active', isActive);
+    });
+  }
+
+  adminNavLinks.forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      const view = link.dataset.adminView || 'terms';
+      const href = link.getAttribute('href') || '#termini';
+      setAdminView(view, href);
+      window.history.replaceState(null, '', view === 'gym' ? '#teretana' : href);
+      if (view === 'terms' && href !== '#termini') {
+        document.querySelector(href)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  if (window.location.hash === '#teretana') setAdminView('gym', '#teretana');
+  if (window.location.hash === '#raspored') setAdminView('terms', '#raspored');
 
   function inCurrentWeek(dateString) {
     const date = new Date(`${dateString}T12:00:00`);
@@ -732,6 +836,165 @@ function initAdminPanel() {
     renderAdminWeekSchedule();
   }
 
+  function gymType(typeId) {
+    return gymData.membershipTypes.find(type => type.id === typeId) || gymData.membershipTypes[0] || { id: 'monthly-regular', name: 'Mjesečna redovna', price: 40, durationDays: 30 };
+  }
+
+  function memberPayments(memberId) {
+    return gymData.payments.filter(payment => payment.memberId === memberId && !payment.deleted);
+  }
+
+  function memberVisits(memberId) {
+    return gymData.visits.filter(visit => visit.memberId === memberId && !visit.deleted);
+  }
+
+  function memberPaidTotal(memberId) {
+    return memberPayments(memberId).reduce((total, payment) => total + Number(payment.amount || 0), 0);
+  }
+
+  function memberDebt(member) {
+    return Math.max(0, Number(gymType(member.membershipTypeId).price || 0) - memberPaidTotal(member.id));
+  }
+
+  function updateGymEndDate() {
+    if (!gymStartDate || !gymEndDate || !gymMembershipType) return;
+    const type = gymType(gymMembershipType.value);
+    gymEndDate.value = addDays(toLocalDate(gymStartDate.value || today), Number(type.durationDays || 30)).toISOString().slice(0, 10);
+  }
+
+  function renderGymTypes() {
+    if (!gymMembershipType || !gymTypeList) return;
+    gymMembershipType.innerHTML = gymData.membershipTypes.map(type => `
+      <option value="${type.id}">${type.name} · ${type.price} KM</option>
+    `).join('');
+    gymTypeList.innerHTML = gymData.membershipTypes.map(type => `
+      <span><strong>${money(type.price)}</strong> ${type.name}</span>
+    `).join('');
+    updateGymEndDate();
+  }
+
+  function filteredGymMembers() {
+    const status = gymStatusFilter?.value || 'all';
+    const search = (gymSearchFilter?.value || '').trim().toLowerCase();
+    return gymData.members
+      .filter(member => !member.deleted)
+      .filter(member => status === 'all' || (status === 'debt' ? memberDebt(member) > 0 : gymStatus(member) === status))
+      .filter(member => {
+        if (!search) return true;
+        return [member.firstName, member.lastName, member.phone, member.note].some(value => String(value || '').toLowerCase().includes(search));
+      })
+      .sort((a, b) => `${a.endDate} ${memberFullName(a)}`.localeCompare(`${b.endDate} ${memberFullName(b)}`));
+  }
+
+  function updateGymStats() {
+    const members = gymData.members.filter(member => !member.deleted);
+    const month = today.slice(0, 7);
+    const revenue = gymData.payments
+      .filter(payment => !payment.deleted && String(payment.date || '').startsWith(month))
+      .reduce((total, payment) => total + Number(payment.amount || 0), 0);
+    const active = members.filter(member => gymStatus(member) === 'active').length;
+    const expiring = members.filter(member => gymStatus(member) === 'expiring').length;
+    const expired = members.filter(member => gymStatus(member) === 'expired').length;
+    document.getElementById('gymStatActive').textContent = active;
+    document.getElementById('gymStatExpiring').textContent = expiring;
+    document.getElementById('gymStatExpired').textContent = expired;
+    document.getElementById('gymStatRevenue').textContent = money(revenue);
+  }
+
+  function renderGymMembers() {
+    if (!gymMembersBody || !gymEmpty) return;
+    const members = filteredGymMembers();
+    gymMembersBody.innerHTML = '';
+    gymEmpty.hidden = members.length > 0;
+    members.forEach(member => {
+      const status = gymStatus(member);
+      const type = gymType(member.membershipTypeId);
+      const payments = memberPayments(member.id);
+      const visits = memberVisits(member.id);
+      const paidTotal = memberPaidTotal(member.id);
+      const debt = memberDebt(member);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="gym-member-cell">
+            <span class="gym-avatar">${member.photo ? `<img src="${member.photo}" alt="">` : (member.firstName || '?').slice(0, 1)}</span>
+            <span><strong>${memberFullName(member)}</strong><small>${member.phone}${member.note ? ` · ${member.note}` : ''}</small></span>
+          </div>
+        </td>
+        <td><strong>${type.name}</strong><small>${formatDate(member.startDate)} - ${formatDate(member.endDate)}</small></td>
+        <td><strong>${money(paidTotal)}</strong><small>${debt > 0 ? `Dug: ${money(debt)}` : 'Bez duga'}</small></td>
+        <td><strong>${visits.length}</strong><small>${visits[0] ? `Zadnji: ${formatDate(visits[visits.length - 1].date)}` : 'Nema dolazaka'}</small></td>
+        <td><span class="status-pill ${status === 'active' ? 'paid' : status === 'expiring' ? 'pending' : 'cancelled'}">${gymStatusLabel(status)}</span></td>
+        <td>
+          <div class="admin-actions">
+            <button class="mini-btn paid" data-gym-action="visit" data-id="${member.id}">Dolazak</button>
+            <button class="mini-btn paid" data-gym-action="payment" data-id="${member.id}">Uplata</button>
+            <button class="mini-btn" data-gym-action="edit" data-id="${member.id}">Uredi</button>
+            <button class="mini-btn danger" data-gym-action="delete" data-id="${member.id}">Briši</button>
+          </div>
+        </td>
+      `;
+      gymMembersBody.appendChild(tr);
+    });
+    updateGymStats();
+  }
+
+  async function refreshGym() {
+    if (!adminPin) return;
+    try {
+      gymData = await loadGym(adminPin);
+      renderGymTypes();
+      renderGymMembers();
+      if (gymMessage) {
+        gymMessage.textContent = '';
+        gymMessage.classList.remove('error');
+      }
+    } catch (error) {
+      if (gymMessage) {
+        gymMessage.textContent = error.message || 'Teretana trenutno nije učitana.';
+        gymMessage.classList.add('error');
+      }
+    }
+  }
+
+  function resetGymForm() {
+    if (!gymMemberForm) return;
+    gymMemberForm.reset();
+    if (gymMemberId) gymMemberId.value = '';
+    gymPhotoData = '';
+    if (gymStartDate) gymStartDate.value = today;
+    if (document.getElementById('gymFormTitle')) document.getElementById('gymFormTitle').textContent = 'Dodaj člana';
+    renderGymTypes();
+  }
+
+  function loadMemberIntoForm(member) {
+    if (!member) return;
+    setAdminView('gym');
+    gymMemberId.value = member.id;
+    gymFirstName.value = member.firstName || '';
+    gymLastName.value = member.lastName || '';
+    gymPhone.value = member.phone || '';
+    gymMembershipType.value = member.membershipTypeId || gymMembershipType.value;
+    gymStartDate.value = member.startDate || today;
+    gymEndDate.value = member.endDate || today;
+    gymNote.value = member.note || '';
+    if (gymPaidNow) gymPaidNow.checked = false;
+    gymPhotoData = member.photo || '';
+    if (document.getElementById('gymFormTitle')) document.getElementById('gymFormTitle').textContent = 'Uredi člana';
+    document.getElementById('teretana')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function readGymPhoto() {
+    return new Promise(resolve => {
+      const file = gymPhoto?.files?.[0];
+      if (!file) return resolve(gymPhotoData);
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => resolve(gymPhotoData);
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function refreshAdmin() {
     adminBookings = await loadBookings(adminPin);
     render();
@@ -746,6 +1009,7 @@ function initAdminPanel() {
     if (loginPanel) loginPanel.hidden = true;
     if (adminContent) adminContent.hidden = false;
     render();
+    await refreshGym();
   }
 
   if (loginForm) {
@@ -779,6 +1043,94 @@ function initAdminPanel() {
   });
 
   [dateFilter, statusFilter, searchFilter].forEach(input => input.addEventListener('input', render));
+  [gymStatusFilter, gymSearchFilter].filter(Boolean).forEach(input => input.addEventListener('input', renderGymMembers));
+  [gymMembershipType, gymStartDate].filter(Boolean).forEach(input => input.addEventListener('change', updateGymEndDate));
+
+  if (gymResetForm) gymResetForm.addEventListener('click', resetGymForm);
+
+  if (gymExport) {
+    gymExport.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(gymData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fara-teretana-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  if (gymMembersBody) {
+    gymMembersBody.addEventListener('click', async event => {
+      const button = event.target.closest('button[data-gym-action]');
+      if (!button) return;
+      const member = gymData.members.find(item => item.id === button.dataset.id);
+      if (!member) return;
+      const action = button.dataset.gymAction;
+      try {
+        if (action === 'edit') return loadMemberIntoForm(member);
+        if (action === 'delete') {
+          if (!confirm(`Obrisati člana ${memberFullName(member)}?`)) return;
+          await gymAction(adminPin, 'deleteMember', { id: member.id });
+        }
+        if (action === 'visit') {
+          await gymAction(adminPin, 'addVisit', { memberId: member.id, date: today });
+        }
+        if (action === 'payment') {
+          const type = gymType(member.membershipTypeId);
+          const amount = Number(prompt('Iznos uplate (KM):', type.price) || 0);
+          if (!amount) return;
+          await gymAction(adminPin, 'addPayment', { memberId: member.id, amount, date: today, note: 'Uplata iz admin panela' });
+        }
+        await refreshGym();
+      } catch (error) {
+        alert(error.message || 'Akcija nije uspjela.');
+      }
+    });
+  }
+
+  if (gymMemberForm) {
+    gymMemberForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!adminPin) return;
+      const button = gymMemberForm.querySelector('button[type="submit"]');
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Čuvam...';
+      }
+      try {
+        const photo = await readGymPhoto();
+        await gymAction(adminPin, 'saveMember', {
+          id: gymMemberId.value,
+          firstName: gymFirstName.value.trim(),
+          lastName: gymLastName.value.trim(),
+          phone: gymPhone.value.trim(),
+          photo,
+          note: gymNote.value.trim(),
+          membershipTypeId: gymMembershipType.value,
+          startDate: gymStartDate.value,
+          endDate: gymEndDate.value,
+          paidNow: gymPaidNow.checked
+        });
+        resetGymForm();
+        await refreshGym();
+        if (gymMessage) {
+          gymMessage.textContent = 'Član je sačuvan.';
+          gymMessage.classList.remove('error');
+        }
+      } catch (error) {
+        if (gymMessage) {
+          gymMessage.textContent = error.message || 'Član nije sačuvan.';
+          gymMessage.classList.add('error');
+        }
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent = 'Sačuvaj člana';
+        }
+      }
+    });
+  }
 
   if (adminPrevWeek) {
     adminPrevWeek.addEventListener('click', () => {
