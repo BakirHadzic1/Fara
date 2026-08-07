@@ -30,11 +30,12 @@ function githubToken() {
 function authHeaders() {
   const token = githubToken();
   const username = process.env.GITHUB_USERNAME || OWNER;
-  return {
+  const headers = {
     Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-    Authorization: token ? `Basic ${Buffer.from(`${username}:${token}`).toString('base64')}` : ''
+    'X-GitHub-Api-Version': '2022-11-28'
   };
+  if (token) headers.Authorization = `Basic ${Buffer.from(`${username}:${token}`).toString('base64')}`;
+  return headers;
 }
 
 async function readBody(req) {
@@ -60,11 +61,23 @@ async function githubRequest(url, options = {}) {
   return data;
 }
 
-async function readBookingsFile() {
+async function readRawJson() {
+  const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error(`GitHub raw read failed: ${response.status}`);
+  return response.json();
+}
+
+async function readBookingsFile(options = {}) {
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`;
-  const data = await githubRequest(url);
-  const content = Buffer.from(data.content || '', 'base64').toString('utf8');
-  return { bookings: JSON.parse(content || '[]'), sha: data.sha };
+  try {
+    const data = await githubRequest(url);
+    const content = Buffer.from(data.content || '', 'base64').toString('utf8');
+    return { bookings: JSON.parse(content || '[]'), sha: data.sha, readonly: false };
+  } catch (error) {
+    if (!options.allowPublicFallback || ![401, 403].includes(error.status)) throw error;
+    return { bookings: await readRawJson(), sha: '', readonly: true };
+  }
 }
 
 async function writeBookingsFile(bookings, sha) {
@@ -329,18 +342,19 @@ async function mutateBookings(mutator) {
 module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 200, { ok: true });
 
-  if (!githubToken()) {
+  if (!githubToken() && req.method !== 'GET') {
     return send(res, 500, { error: 'Server nije podešen: nedostaje GitHub token.' });
   }
 
   try {
     if (req.method === 'GET') {
-      const { bookings } = await readBookingsFile();
+      const { bookings, readonly } = await readBookingsFile({ allowPublicFallback: true });
       const active = bookings.filter(item => item.status !== 'deleted');
       return send(res, 200, {
         bookings: isAdmin(req) ? active : active.map(publicBooking),
         admin: isAdmin(req),
-        adminEmail: isAdmin(req) ? ADMIN_EMAIL : undefined
+        adminEmail: isAdmin(req) ? ADMIN_EMAIL : undefined,
+        readonly
       });
     }
 
@@ -439,6 +453,9 @@ module.exports = async function handler(req, res) {
 
     return send(res, 405, { error: 'Metoda nije podržana.' });
   } catch (error) {
+    if (error.status === 401 || error.status === 403 || error.message === 'Bad credentials') {
+      return send(res, 500, { error: 'GitHub token za čuvanje podataka nije ispravan. Admin može čitati podatke, ali za izmjene treba osvježiti Vercel env FARA_GITHUB_TOKEN.' });
+    }
     return send(res, error.publicStatus || error.status || 500, { error: error.message || 'Greška na serveru.' });
   }
 };

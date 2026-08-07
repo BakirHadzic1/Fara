@@ -28,11 +28,12 @@ function githubToken() {
 function authHeaders() {
   const token = githubToken();
   const username = process.env.GITHUB_USERNAME || OWNER;
-  return {
+  const headers = {
     Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-    Authorization: token ? `Basic ${Buffer.from(`${username}:${token}`).toString('base64')}` : ''
+    'X-GitHub-Api-Version': '2022-11-28'
   };
+  if (token) headers.Authorization = `Basic ${Buffer.from(`${username}:${token}`).toString('base64')}`;
+  return headers;
 }
 
 async function readBody(req) {
@@ -56,6 +57,13 @@ async function githubRequest(url, options = {}) {
     throw error;
   }
   return data;
+}
+
+async function readRawJson() {
+  const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error(`GitHub raw read failed: ${response.status}`);
+  return response.json();
 }
 
 function defaultData() {
@@ -85,11 +93,16 @@ function normalizeData(data) {
   return normalized;
 }
 
-async function readGymFile() {
+async function readGymFile(options = {}) {
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`;
-  const data = await githubRequest(url);
-  const content = Buffer.from(data.content || '', 'base64').toString('utf8');
-  return { gym: normalizeData(JSON.parse(content || '{}')), sha: data.sha };
+  try {
+    const data = await githubRequest(url);
+    const content = Buffer.from(data.content || '', 'base64').toString('utf8');
+    return { gym: normalizeData(JSON.parse(content || '{}')), sha: data.sha, readonly: false };
+  } catch (error) {
+    if (!options.allowPublicFallback || ![401, 403].includes(error.status)) throw error;
+    return { gym: normalizeData(await readRawJson()), sha: '', readonly: true };
+  }
 }
 
 async function writeGymFile(gym, sha) {
@@ -172,7 +185,7 @@ function findType(tenant, typeId) {
 module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 200, { ok: true });
 
-  if (!githubToken()) {
+  if (!githubToken() && req.method !== 'GET') {
     return send(res, 500, { error: 'Server nije podešen: nedostaje GitHub token.' });
   }
 
@@ -182,10 +195,10 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const { gym } = await readGymFile();
+      const { gym, readonly } = await readGymFile({ allowPublicFallback: true });
       const tenantId = tenantIdFrom(req);
       const tenant = gym.tenants[tenantId] || gym.tenants[DEFAULT_TENANT];
-      return send(res, 200, { tenantId, tenant: publicTenant(tenant), admin: true });
+      return send(res, 200, { tenantId, tenant: publicTenant(tenant), admin: true, readonly });
     }
 
     if (req.method === 'POST') {
@@ -295,6 +308,9 @@ module.exports = async function handler(req, res) {
 
     return send(res, 405, { error: 'Metoda nije podržana.' });
   } catch (error) {
+    if (error.status === 401 || error.status === 403 || error.message === 'Bad credentials') {
+      return send(res, 500, { error: 'GitHub token za čuvanje podataka nije ispravan. Admin može čitati podatke, ali za izmjene treba osvježiti Vercel env FARA_GITHUB_TOKEN.' });
+    }
     return send(res, error.publicStatus || error.status || 500, { error: error.message || 'Greška na serveru.' });
   }
 };
