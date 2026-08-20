@@ -1,0 +1,35 @@
+{
+  "name": "FARA Sport Centar",
+  "short_name": "FARA Sport",
+  "description": "FARA Sport Centar aplikacija za rezervaciju i pregled termina.",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#15191d",
+  "theme_color": "#15191d",
+  "orientation": "portrait-primary",
+  "lang": "bs",
+  "categories": ["sports", "business", "lifestyle"],
+  "icons": [
+    {
+      "src": "/build/icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Moji termini",
+      "short_name": "Termini",
+      "description": "Pregled mojih termina",
+      "url": "/app.html"
+    },
+    {
+      "name": "Rezervacija termina",
+      "short_name": "Rezervacija",
+      "description": "Otvori raspored i rezervaciju",
+      "url": "/index.html#rezervacija"
+    }
+  ]
+}

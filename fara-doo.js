@@ -48,6 +48,13 @@ function useOnlineApi() {
   return location.protocol === 'http:' || location.protocol === 'https:';
 }
 
+function initPwa() {
+  if (!('serviceWorker' in navigator) || !useOnlineApi()) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
 async function requestBookings(options = {}) {
   if (!useOnlineApi()) return { bookings: localBookings(), local: true };
   const { url = API_URL, ...fetchOptions } = options;
@@ -1360,3 +1367,4 @@ function initAdminPanel() {
 initBookingModal();
 initUserApp();
 initAdminPanel();
+initPwa();
