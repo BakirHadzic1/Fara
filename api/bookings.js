@@ -194,6 +194,37 @@ function publicBooking(item) {
   };
 }
 
+function ownerBooking(item) {
+  return {
+    id: item.id,
+    date: item.date,
+    time: item.time,
+    type: item.type,
+    months: item.months,
+    endDate: item.endDate,
+    category: item.category,
+    status: item.status,
+    price: item.price,
+    paid: item.paid,
+    name: item.name,
+    renewalDate: item.renewalDate,
+    source: item.source
+  };
+}
+
+function normalizePhone(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('00387')) return `387${digits.slice(5)}`;
+  if (digits.startsWith('0')) return `387${digits.slice(1)}`;
+  return digits;
+}
+
+function samePhone(left, right) {
+  return normalizePhone(left) === normalizePhone(right);
+}
+
 function cleanText(value) {
   return String(value || '').trim().slice(0, 500);
 }
@@ -348,8 +379,18 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      const url = new URL(req.url || '/', `https://${req.headers.host || 'www.fara.ba'}`);
+      const mine = url.searchParams.get('mine') === '1';
+      const phone = cleanText(url.searchParams.get('phone'));
       const { bookings, readonly } = await readBookingsFile({ allowPublicFallback: true });
       const active = bookings.filter(item => item.status !== 'deleted');
+      if (mine) {
+        if (!normalizePhone(phone)) return send(res, 400, { error: 'Unesite broj telefona.' });
+        const mineBookings = active
+          .filter(item => item.status !== 'cancelled' && samePhone(item.phone, phone))
+          .map(ownerBooking);
+        return send(res, 200, { bookings: mineBookings, readonly, owner: true });
+      }
       return send(res, 200, {
         bookings: isAdmin(req) ? active : active.map(publicBooking),
         admin: isAdmin(req),

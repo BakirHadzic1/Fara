@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'faraSportBookings';
 const MY_BOOKINGS_KEY = 'faraMyBookings';
+const USER_APP_PHONE_KEY = 'faraUserAppPhone';
 const API_URL = '/api/bookings';
 const GYM_API_URL = '/api/gym';
 const GYM_TENANT_ID = 'fara-sport-centar';
@@ -36,14 +37,22 @@ function saveOwnBookings(bookings) {
   localStorage.setItem(MY_BOOKINGS_KEY, JSON.stringify(bookings));
 }
 
+function normalizePhone(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (digits.startsWith('00387')) return `387${digits.slice(5)}`;
+  if (digits.startsWith('0')) return `387${digits.slice(1)}`;
+  return digits;
+}
+
 function useOnlineApi() {
   return location.protocol === 'http:' || location.protocol === 'https:';
 }
 
 async function requestBookings(options = {}) {
   if (!useOnlineApi()) return { bookings: localBookings(), local: true };
-  const response = await fetch(API_URL, {
-    ...options,
+  const { url = API_URL, ...fetchOptions } = options;
+  const response = await fetch(url, {
+    ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers || {})
@@ -61,6 +70,17 @@ async function loadBookings(adminPin = '') {
   } catch {
     return localBookings();
   }
+}
+
+async function loadUserBookings(phone) {
+  if (!useOnlineApi()) {
+    return localBookings().filter(item => normalizePhone(item.phone) === normalizePhone(phone));
+  }
+  const data = await requestBookings({
+    method: 'GET',
+    url: `${API_URL}?mine=1&phone=${encodeURIComponent(phone)}`
+  });
+  return data.bookings || [];
 }
 
 async function createBooking(booking, adminPin = '') {
@@ -602,6 +622,102 @@ function initBookingModal() {
 
   refreshBookings();
   if (window.location.hash === '#rezervacija') window.setTimeout(openModal, 350);
+}
+
+function initUserApp() {
+  const form = document.getElementById('userAppLogin');
+  const phoneInput = document.getElementById('userAppPhone');
+  const message = document.getElementById('userAppMessage');
+  const panel = document.getElementById('userBookingsPanel');
+  const list = document.getElementById('userBookingsList');
+  const logout = document.getElementById('userAppLogout');
+  if (!form || !phoneInput || !message || !panel || !list) return;
+
+  function activeOwnerBookings(bookings) {
+    const today = new Date().toISOString().slice(0, 10);
+    return bookings
+      .filter(item => item.status !== 'cancelled' && item.status !== 'deleted')
+      .filter(item => (item.endDate || item.date) >= today)
+      .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+  }
+
+  function renderUserBookings(bookings) {
+    const active = activeOwnerBookings(bookings);
+    panel.hidden = false;
+    if (!active.length) {
+      list.innerHTML = `
+        <article class="user-empty-card">
+          <strong>Nema aktivnih termina za ovaj broj.</strong>
+          <small>Provjerite da li je broj isti kao kod rezervacije ili otvorite raspored za novi termin.</small>
+          <a href="index.html#rezervacija" class="btn btn-dark">Otvori raspored</a>
+        </article>
+      `;
+      return;
+    }
+
+    list.innerHTML = active.map(item => {
+      const type = bookingTypeLabel(item.type);
+      const monthly = item.type === 'monthly';
+      const price = monthly ? `${item.price || 200} KM / mjesec` : `${item.price || bookingPrice(item.type, item.category, item.time)} KM`;
+      const period = monthly ? ` · do ${formatDate(item.endDate)}` : '';
+      const paid = item.paid ? 'Plaćeno' : 'Provjeriti uplatu';
+      return `
+        <article class="user-booking-card">
+          <div class="user-booking-time">
+            <span>${item.time}</span>
+            <small>${formatDate(item.date)}</small>
+          </div>
+          <div class="user-booking-info">
+            <strong>${type}${period}</strong>
+            <small>${price} · ${paid}</small>
+          </div>
+          <span class="user-booking-status ${item.paid ? 'paid' : 'pending'}">${item.paid ? 'OK' : 'Info'}</span>
+        </article>
+      `;
+    }).join('');
+  }
+
+  async function lookup(phone) {
+    const cleanPhone = phone.trim();
+    if (!normalizePhone(cleanPhone)) {
+      message.textContent = 'Unesite broj telefona.';
+      message.classList.add('error');
+      return;
+    }
+    message.textContent = 'Učitavam vaše termine...';
+    message.classList.remove('error');
+    try {
+      const bookings = await loadUserBookings(cleanPhone);
+      localStorage.setItem(USER_APP_PHONE_KEY, cleanPhone);
+      renderUserBookings(bookings);
+      message.textContent = bookings.length ? 'Termini su učitani.' : 'Nema pronađenih termina za ovaj broj.';
+    } catch (error) {
+      message.textContent = error.message || 'Nije moguće učitati termine.';
+      message.classList.add('error');
+    }
+  }
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    lookup(phoneInput.value);
+  });
+
+  if (logout) {
+    logout.addEventListener('click', () => {
+      localStorage.removeItem(USER_APP_PHONE_KEY);
+      phoneInput.value = '';
+      panel.hidden = true;
+      list.innerHTML = '';
+      message.textContent = 'Unesite drugi broj telefona.';
+      phoneInput.focus();
+    });
+  }
+
+  const savedPhone = localStorage.getItem(USER_APP_PHONE_KEY) || '';
+  if (savedPhone) {
+    phoneInput.value = savedPhone;
+    lookup(savedPhone);
+  }
 }
 
 function initAdminPanel() {
@@ -1242,4 +1358,5 @@ function initAdminPanel() {
 }
 
 initBookingModal();
+initUserApp();
 initAdminPanel();

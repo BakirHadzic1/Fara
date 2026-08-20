@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FARA Sport Centar app — Moji termini</title>
+<meta name="description" content="FARA Sport Centar aplikacija za pregled svojih rezervisanih termina i brz ulaz u rezervaciju.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.fara.ba/app.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="bs_BA">
+<meta property="og:site_name" content="FARA Sport Centar">
+<meta property="og:title" content="FARA Sport Centar app — Moji termini">
+<meta property="og:description" content="Prijavite se brojem telefona i pogledajte svoje termine u Fara Sport Centru.">
+<meta property="og:url" content="https://www.fara.ba/app.html">
+<meta property="og:image" content="https://www.fara.ba/files/hero-fara-sport-centar.jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fara-doo.css">
+</head>
+<body class="user-app-page">
+
+<main class="user-app-shell">
+  <header class="user-app-header">
+    <a href="index.html" class="logo">
+      <span class="logo-text">FARA<span>.</span></span>
+    </a>
+    <a class="user-app-admin" href="index.html#rezervacija">Rezervacija</a>
+  </header>
+
+  <section class="user-app-hero">
+    <span class="section-eyebrow">Fara Sport Centar</span>
+    <h1>Moji termini</h1>
+    <p>Prijavite se brojem telefona koji ste ostavili pri rezervaciji i pogledajte svoje aktivne termine.</p>
+  </section>
+
+  <section class="user-app-grid">
+    <form class="user-login-card" id="userAppLogin">
+      <label>
+        Broj telefona
+        <input id="userAppPhone" type="tel" autocomplete="tel" placeholder="npr. 062 290 622" required>
+      </label>
+      <button type="submit" class="btn btn-primary">Prikaži moje termine</button>
+      <p class="user-app-message" id="userAppMessage" aria-live="polite"></p>
+    </form>
+
+    <article class="user-help-card">
+      <span class="mini-label">Podrška</span>
+      <h2>Treba izmjena?</h2>
+      <p>Za izmjenu ili otkazivanje termina nazovite <a href="tel:+38762290622">062 290 622</a> najkasnije isti dan do 16:00.</p>
+    </article>
+  </section>
+
+  <section class="user-bookings-panel" id="userBookingsPanel" hidden>
+    <div class="user-panel-head">
+      <div>
+        <span class="section-eyebrow">Pregled</span>
+        <h2>Aktivni termini</h2>
+      </div>
+      <button type="button" class="mini-btn" id="userAppLogout">Promijeni broj</button>
+    </div>
+    <div class="user-bookings-list" id="userBookingsList"></div>
+  </section>
+
+  <section class="user-app-actions">
+    <a href="index.html#rezervacija" class="app-action-card">
+      <span>01</span>
+      <strong>Rezerviši novi termin</strong>
+      <small>Otvori raspored slobodnih termina.</small>
+    </a>
+    <article class="app-action-card muted">
+      <span>02</span>
+      <strong>Teretana</strong>
+      <small>Uskoro pregled članarine i podsjetnici za obnovu.</small>
+    </article>
+  </section>
+</main>
+
+<script src="fara-doo.js"></script>
+</body>
+</html>

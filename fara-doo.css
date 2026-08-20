@@ -1550,6 +1550,223 @@ body.modal-open{overflow:hidden;}
 .footer-logo{font-family:var(--font-display);font-weight:900;font-size:24px;color:#fff;}
 .footer-logo span{color:var(--red);}
 
+.user-app-page{
+  min-height:100vh;
+  background:
+    linear-gradient(135deg,rgba(223,31,45,.16),transparent 32%),
+    radial-gradient(circle at 82% 8%,rgba(73,241,118,.14),transparent 28%),
+    #15191d;
+  color:#f7f7f3;
+}
+.user-app-shell{
+  width:min(1080px,calc(100% - 32px));
+  margin:0 auto;
+  padding:22px 0 48px;
+}
+.user-app-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:14px 0 32px;
+}
+.user-app-header .logo{
+  color:#fff;
+  text-decoration:none;
+}
+.user-app-admin{
+  display:inline-flex;
+  align-items:center;
+  min-height:42px;
+  padding:0 16px;
+  border:1px solid rgba(255,255,255,.16);
+  color:#fff;
+  text-decoration:none;
+  font:900 12px var(--font-mono);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.user-app-hero{
+  max-width:760px;
+  padding:38px 0 28px;
+}
+.user-app-hero h1{
+  margin:8px 0 14px;
+  font-family:var(--font-display);
+  font-size:clamp(58px,11vw,126px);
+  line-height:.82;
+  text-transform:uppercase;
+}
+.user-app-hero p{
+  max-width:650px;
+  color:#cfd5d8;
+  font-size:clamp(18px,2.4vw,25px);
+  line-height:1.45;
+}
+.user-app-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);
+  gap:16px;
+}
+.user-login-card,.user-help-card,.user-bookings-panel,.app-action-card{
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 24px 60px rgba(0,0,0,.22);
+  backdrop-filter:blur(16px);
+}
+.user-login-card{
+  display:grid;
+  gap:14px;
+  padding:22px;
+}
+.user-login-card label{
+  display:grid;
+  gap:8px;
+  color:#dfe4e7;
+  font:900 12px var(--font-mono);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.user-login-card input{
+  min-height:58px;
+  border:1px solid rgba(255,255,255,.16);
+  background:#fff;
+  color:#15191d;
+  padding:0 16px;
+  font:800 18px var(--font-body);
+  outline:none;
+}
+.user-login-card input:focus{
+  border-color:var(--red);
+  box-shadow:0 0 0 4px rgba(223,31,45,.18);
+}
+.user-app-message{
+  margin:0;
+  min-height:22px;
+  color:#cfd5d8;
+}
+.user-app-message.error{color:#ff8b92;}
+.user-help-card{
+  padding:22px;
+}
+.user-help-card h2{
+  margin:10px 0;
+  font-family:var(--font-display);
+  font-size:38px;
+  line-height:.9;
+  text-transform:uppercase;
+}
+.user-help-card p{
+  color:#cfd5d8;
+  line-height:1.55;
+}
+.user-help-card a{color:#fff;font-weight:900;}
+.user-bookings-panel{
+  margin-top:16px;
+  padding:22px;
+}
+.user-panel-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:18px;
+}
+.user-panel-head h2{
+  margin:6px 0 0;
+  font-family:var(--font-display);
+  font-size:46px;
+  line-height:.9;
+  text-transform:uppercase;
+}
+.user-bookings-list{
+  display:grid;
+  gap:10px;
+}
+.user-booking-card{
+  display:grid;
+  grid-template-columns:150px 1fr auto;
+  align-items:center;
+  gap:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.18);
+  padding:14px;
+}
+.user-booking-time span{
+  display:block;
+  font-family:var(--font-display);
+  font-size:42px;
+  line-height:.85;
+}
+.user-booking-time small,.user-booking-info small,.user-empty-card small{
+  display:block;
+  color:#b8c0c4;
+  line-height:1.45;
+}
+.user-booking-info strong{
+  display:block;
+  margin-bottom:4px;
+  font-size:18px;
+}
+.user-booking-status{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:58px;
+  min-height:34px;
+  border-radius:999px;
+  font:900 11px var(--font-mono);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.user-booking-status.paid{
+  background:rgba(73,241,118,.14);
+  color:#49f176;
+}
+.user-booking-status.pending{
+  background:rgba(255,193,7,.14);
+  color:#ffd36a;
+}
+.user-empty-card{
+  display:grid;
+  gap:12px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.18);
+  padding:18px;
+}
+.user-empty-card .btn{justify-self:start;}
+.user-app-actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+  margin-top:16px;
+}
+.app-action-card{
+  display:grid;
+  gap:8px;
+  padding:22px;
+  color:#fff;
+  text-decoration:none;
+}
+.app-action-card span{
+  color:var(--red);
+  font:900 12px var(--font-mono);
+  letter-spacing:.12em;
+}
+.app-action-card strong{
+  font-family:var(--font-display);
+  font-size:38px;
+  line-height:.9;
+  text-transform:uppercase;
+}
+.app-action-card small{
+  color:#cfd5d8;
+  font-size:15px;
+}
+.app-action-card.muted{
+  opacity:.74;
+}
+
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease;}
 .reveal.in{opacity:1;transform:translateY(0);}
 
@@ -1805,4 +2022,14 @@ body.modal-open{overflow:hidden;}
   .admin-create-form,.gym-member-form{grid-template-columns:1fr;}
   .admin-create-form .btn{width:100%;}
   .admin-filter,.admin-filter label,.admin-toolbar .btn{width:100%;}
+  .user-app-shell{width:min(100% - 22px,1080px);padding-top:14px;}
+  .user-app-header{padding-bottom:18px;}
+  .user-app-admin{min-height:38px;padding:0 12px;font-size:10px;}
+  .user-app-hero{padding:22px 0 20px;}
+  .user-app-grid,.user-app-actions{grid-template-columns:1fr;}
+  .user-login-card,.user-help-card,.user-bookings-panel,.app-action-card{padding:16px;}
+  .user-booking-card{grid-template-columns:1fr;align-items:start;}
+  .user-booking-status{justify-self:start;}
+  .user-panel-head{align-items:flex-start;flex-direction:column;}
+  .user-empty-card .btn{width:100%;}
 }
