@@ -698,7 +698,7 @@
     "note": "Privremeni test tokena",
     "price": 50,
     "paid": false,
-    "status": "pending",
+    "status": "deleted",
     "renewalDate": "",
     "endDate": "",
     "cancelToken": "3b5bf8ddbe4a1a48779dd8759a2ffd56",
