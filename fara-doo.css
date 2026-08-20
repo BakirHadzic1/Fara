@@ -893,6 +893,16 @@ button{font-family:inherit;cursor:pointer;}
   text-decoration:underline;
   text-underline-offset:3px;
 }
+.booking-phone-note{
+  margin:0;
+  padding:12px 14px;
+  border:1px solid rgba(223,31,45,.24);
+  background:rgba(223,31,45,.07);
+  color:var(--ink);
+  font-size:14px;
+  font-weight:800;
+  line-height:1.35;
+}
 .own-booking{
   display:grid;
   grid-template-columns:minmax(0,1fr);

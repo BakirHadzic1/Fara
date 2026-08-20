@@ -468,11 +468,11 @@
           </select>
         </label>
         <div class="booking-grid-2">
-          <label>Ime i prezime
-            <input type="text" name="name" autocomplete="name" required>
+          <label>Telefon za potvrdu
+            <input type="tel" name="phone" autocomplete="tel" inputmode="tel" placeholder="npr. 062 290 622" required>
           </label>
-          <label>Telefon
-            <input type="tel" name="phone" autocomplete="tel" required>
+          <label>Ime i prezime
+            <input type="text" name="name" autocomplete="name" placeholder="ime ekipe ili osobe" required>
           </label>
         </div>
         <label>Email
@@ -485,6 +485,7 @@
           <strong>Otkazivanje i izmjene termina</strong>
           <p>Za otkazivanje ili izmjenu termina nazovite <a href="tel:+38762290622">062 290 622</a> najkasnije isti dan do 16:00. Ako korisnik ne dođe i ne najavi odsustvo, termin se obračunava kao iskorišten.</p>
         </div>
+        <p class="booking-phone-note">Broj telefona je obavezan kako bi osoblje moglo potvrditi rezervaciju.</p>
         <div class="own-bookings" id="ownBookings" hidden>
           <span class="mini-label">Rezervacija poslana</span>
           <div id="ownBookingsList"></div>
