@@ -720,7 +720,7 @@
     "note": "",
     "price": 50,
     "paid": false,
-    "status": "pending",
+    "status": "cancelled",
     "renewalDate": "",
     "endDate": "",
     "cancelToken": "79df70341aa5dfbc51f9b183c0df4442",
