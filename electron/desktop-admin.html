@@ -15,6 +15,10 @@
       <span class="brand">FARA<span>.</span></span>
       <small>Desktop admin panel</small>
     </div>
+    <nav class="mode-tabs" aria-label="Admin moduli">
+      <button class="mode-tab active" type="button" data-mode="terms">Termini</button>
+      <button class="mode-tab" type="button" data-mode="gym">Teretana</button>
+    </nav>
     <div class="header-actions">
       <button class="ghost-btn" id="refreshData" type="button">Osvježi</button>
       <a class="ghost-btn" href="https://www.fara.ba/admin.html" target="_blank" rel="noopener">Online admin</a>
@@ -40,13 +44,14 @@
     <section class="dashboard" id="dashboard" hidden>
       <div class="dashboard-head">
         <div>
-          <span class="eyebrow">Sport Centar</span>
-          <h1>Rezervacije i stalni termini</h1>
+          <span class="eyebrow" id="moduleEyebrow">Sport Centar</span>
+          <h1 id="moduleTitle">Rezervacije i stalni termini</h1>
         </div>
         <p id="lastUpdated">Učitavanje...</p>
       </div>
 
-      <section class="stats-grid" aria-label="Statistika">
+      <section class="module-view active" id="termsView" data-module="terms">
+      <section class="stats-grid" aria-label="Statistika termina">
         <article class="stat-card">
           <span>Danas plaćeno</span>
           <strong id="statToday">0 KM</strong>
@@ -164,6 +169,128 @@
           </table>
         </div>
         <p class="empty" id="emptyState">Nema rezervacija za odabrani filter.</p>
+      </section>
+      </section>
+
+      <section class="module-view" id="gymView" data-module="gym" hidden>
+        <section class="stats-grid large-stats" aria-label="Statistika teretane">
+          <article class="stat-card">
+            <span>Aktivni članovi</span>
+            <strong id="gymStatActive">0</strong>
+          </article>
+          <article class="stat-card warn">
+            <span>Uskoro ističe</span>
+            <strong id="gymStatExpiring">0</strong>
+          </article>
+          <article class="stat-card danger">
+            <span>Isteklo</span>
+            <strong id="gymStatExpired">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Zarada mjesec</span>
+            <strong id="gymStatRevenue">0 KM</strong>
+          </article>
+        </section>
+
+        <section class="gym-workspace">
+          <section class="panel">
+            <div class="panel-title">
+              <div>
+                <span class="eyebrow">Teretana</span>
+                <h2 id="gymFormTitle">Dodaj člana</h2>
+              </div>
+              <small>Veći unos za recepciju</small>
+            </div>
+            <form class="create-form gym-form" id="gymMemberForm">
+              <input type="hidden" id="gymMemberId">
+              <label>Ime
+                <input type="text" id="gymFirstName" required>
+              </label>
+              <label>Prezime
+                <input type="text" id="gymLastName">
+              </label>
+              <label>Telefon
+                <input type="tel" id="gymPhone" required>
+              </label>
+              <label>Kod člana
+                <input type="text" id="gymAccessCode" inputmode="numeric" maxlength="8" placeholder="automatski">
+              </label>
+              <label>Članarina
+                <select id="gymMembershipType" required></select>
+              </label>
+              <label>Početak
+                <input type="date" id="gymStartDate" required>
+              </label>
+              <label>Istek
+                <input type="date" id="gymEndDate" required>
+              </label>
+              <label>Napomena
+                <input type="text" id="gymNote" placeholder="Napomena">
+              </label>
+              <label class="check-row">
+                <input type="checkbox" id="gymPaidNow">
+                <span>Odmah evidentiraj uplatu</span>
+              </label>
+              <button class="primary-btn" type="submit">Sačuvaj člana</button>
+              <button class="ghost-btn" type="button" id="gymResetForm">Novi unos</button>
+            </form>
+            <p class="message" id="gymMessage"></p>
+          </section>
+
+          <section class="panel quick-panel">
+            <div class="panel-title">
+              <div>
+                <span class="eyebrow">Dnevna karta</span>
+                <h2>Brzi unos</h2>
+              </div>
+            </div>
+            <div class="quick-grid">
+              <label>Ime / napomena
+                <input type="text" id="gymDailyName" placeholder="Dnevna karta">
+              </label>
+              <label>Iznos
+                <input type="number" id="gymDailyAmount" min="0" step="1" placeholder="5">
+              </label>
+              <button class="primary-btn big-action" type="button" id="gymDailyAdd">Dodaj dnevnu kartu</button>
+            </div>
+            <div class="type-list" id="gymTypeList"></div>
+          </section>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">Kontrola</span>
+              <h2>Članovi</h2>
+            </div>
+            <div class="filters">
+              <select id="gymStatusFilter">
+                <option value="all">Svi članovi</option>
+                <option value="active">Aktivni</option>
+                <option value="expiring">Uskoro ističu</option>
+                <option value="expired">Istekli</option>
+                <option value="debt">Dugovanja</option>
+              </select>
+              <input type="search" id="gymSearchFilter" placeholder="Pretraga ime, broj">
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="gym-table">
+              <thead>
+                <tr>
+                  <th>Član</th>
+                  <th>Članarina</th>
+                  <th>Uplata</th>
+                  <th>Dolasci</th>
+                  <th>Status</th>
+                  <th>Akcije</th>
+                </tr>
+              </thead>
+              <tbody id="gymRows"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="gymEmpty">Nema članova za odabrani filter.</p>
+        </section>
       </section>
     </section>
   </main>
