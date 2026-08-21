@@ -40,7 +40,7 @@
         {
           "id": "gym-1787315734916",
           "createdAt": "2026-08-21T12:35:34.916Z",
-          "updatedAt": "2026-08-21T12:35:34.916Z",
+          "updatedAt": "2026-08-21T12:37:39.251Z",
           "firstName": "Bakir",
           "lastName": "Hadzic",
           "phone": "0603472117",
@@ -49,7 +49,7 @@
           "membershipTypeId": "monthly-until-16",
           "startDate": "2026-08-21",
           "endDate": "2026-09-20",
-          "deleted": false
+          "deleted": true
         }
       ],
       "payments": [
