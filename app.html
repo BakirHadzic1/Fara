@@ -38,7 +38,7 @@
   <section class="user-app-hero">
     <span class="section-eyebrow">Fara Sport Centar</span>
     <h1>Moji termini</h1>
-    <p>Prijavite se brojem telefona koji ste ostavili pri rezervaciji i pogledajte svoje aktivne termine.</p>
+    <p>Prijavite se brojem telefona i PIN-om koji dobijete uz rezervaciju, pa pogledajte svoje aktivne termine.</p>
   </section>
 
   <section class="user-app-grid">
@@ -47,6 +47,10 @@
         Broj telefona
         <input id="userAppPhone" type="tel" autocomplete="tel" placeholder="npr. 061 234 567" required>
       </label>
+      <label>
+        PIN
+        <input id="userAppPin" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="4 cifre" maxlength="6" required>
+      </label>
       <button type="submit" class="btn btn-primary">Prikaži moje termine</button>
       <p class="user-app-message" id="userAppMessage" aria-live="polite"></p>
     </form>
@@ -54,7 +58,7 @@
     <article class="user-help-card">
       <span class="mini-label">Podrška</span>
       <h2>Treba izmjena?</h2>
-      <p>Za izmjenu ili otkazivanje termina nazovite <a href="tel:+38762290622">062 290 622</a> najkasnije isti dan do 16:00.</p>
+      <p>PIN dobijete nakon online rezervacije ili od osoblja. Za izmjenu ili otkazivanje termina nazovite <a href="tel:+38762290622">062 290 622</a> najkasnije isti dan do 16:00.</p>
     </article>
   </section>
 
@@ -64,7 +68,7 @@
         <span class="section-eyebrow">Pregled</span>
         <h2>Aktivni termini</h2>
       </div>
-      <button type="button" class="mini-btn" id="userAppLogout">Promijeni broj</button>
+      <button type="button" class="mini-btn" id="userAppLogout">Promijeni prijavu</button>
     </div>
     <div class="user-bookings-list" id="userBookingsList"></div>
   </section>

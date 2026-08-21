@@ -233,6 +233,14 @@ function makeCancelToken() {
   return require('crypto').randomBytes(16).toString('hex');
 }
 
+function makeUserPin() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function cleanPin(value) {
+  return String(value || '').replace(/\D/g, '').slice(0, 6);
+}
+
 function escapeHtml(value) {
   return String(value || '')
     .replaceAll('&', '&amp;')
@@ -382,12 +390,15 @@ module.exports = async function handler(req, res) {
       const url = new URL(req.url || '/', `https://${req.headers.host || 'www.fara.ba'}`);
       const mine = url.searchParams.get('mine') === '1';
       const phone = cleanText(url.searchParams.get('phone'));
+      const userPin = cleanPin(url.searchParams.get('pin'));
       const { bookings, readonly } = await readBookingsFile({ allowPublicFallback: true });
       const active = bookings.filter(item => item.status !== 'deleted');
       if (mine) {
         if (!normalizePhone(phone)) return send(res, 400, { error: 'Unesite broj telefona.' });
+        if (!userPin) return send(res, 400, { error: 'Unesite PIN za pristup.' });
         const mineBookings = active
           .filter(item => item.status !== 'cancelled' && samePhone(item.phone, phone))
+          .filter(item => cleanPin(item.userPin) === userPin)
           .map(ownerBooking);
         return send(res, 200, { bookings: mineBookings, readonly, owner: true });
       }
@@ -411,6 +422,7 @@ module.exports = async function handler(req, res) {
       const phone = cleanText(body.phone);
       const email = cleanText(body.email);
       const note = cleanText(body.note);
+      const userPin = cleanPin(body.userPin) || makeUserPin();
 
       if (!date || !time || !name || !phone) {
         return send(res, 400, { error: 'Datum, vrijeme, ime i telefon su obavezni.' });
@@ -444,6 +456,7 @@ module.exports = async function handler(req, res) {
           phone,
           email,
           note,
+          userPin,
           price: bookingPrice(type, category, time),
           paid: adminRequest ? Boolean(body.paid) : false,
           status: 'pending',
@@ -483,6 +496,7 @@ module.exports = async function handler(req, res) {
           if (action === 'paid') updated = { ...item, paid: !item.paid, status: item.status === 'cancelled' ? 'pending' : item.status };
           if (action === 'cancel') updated = { ...item, status: item.status === 'cancelled' ? 'pending' : 'cancelled' };
           if (action === 'delete') updated = { ...item, status: 'deleted' };
+          if (action === 'pin') updated = { ...item, userPin: makeUserPin() };
           return updated || item;
         });
         return { bookings: next, result: updated };

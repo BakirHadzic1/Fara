@@ -79,13 +79,13 @@ async function loadBookings(adminPin = '') {
   }
 }
 
-async function loadUserBookings(phone) {
+async function loadUserBookings(phone, pin) {
   if (!useOnlineApi()) {
-    return localBookings().filter(item => normalizePhone(item.phone) === normalizePhone(phone));
+    return localBookings().filter(item => normalizePhone(item.phone) === normalizePhone(phone) && String(item.userPin || '') === String(pin || ''));
   }
   const data = await requestBookings({
     method: 'GET',
-    url: `${API_URL}?mine=1&phone=${encodeURIComponent(phone)}`
+    url: `${API_URL}?mine=1&phone=${encodeURIComponent(phone)}&pin=${encodeURIComponent(pin)}`
   });
   return data.bookings || [];
 }
@@ -127,6 +127,7 @@ async function updateBookingOnline(id, action, adminPin) {
       if (action === 'paid') return { ...item, paid: !item.paid, status: item.status === 'cancelled' ? 'pending' : item.status };
       if (action === 'cancel') return { ...item, status: item.status === 'cancelled' ? 'pending' : 'cancelled' };
       if (action === 'delete') return { ...item, status: 'deleted' };
+      if (action === 'pin') return { ...item, userPin: String(Math.floor(1000 + Math.random() * 9000)) };
       return item;
     });
     saveLocalBookings(bookings);
@@ -189,6 +190,10 @@ function bookingPrice(type, category, time) {
 
 function bookingTypeLabel(type) {
   return type === 'monthly' ? 'Stalni mjesečni termin' : 'Jedan termin';
+}
+
+function cleanUserPin(value) {
+  return String(value || '').replace(/\D/g, '').slice(0, 6);
 }
 
 function categoryLabel(category) {
@@ -493,7 +498,8 @@ function initBookingModal() {
       months: booking.months,
       endDate: booking.endDate,
       price: booking.price,
-      status: booking.status
+      status: booking.status,
+      userPin: booking.userPin
     });
     saveOwnBookings(mine.slice(-8));
   }
@@ -618,7 +624,9 @@ function initBookingModal() {
       dateInput.value = today;
       setWeekAround(today);
       updateSummary();
-      message.textContent = 'Rezervacija je zabilježena. Za izmjenu ili otkazivanje nazovite 062 290 622.';
+      message.textContent = saved.userPin
+        ? `Rezervacija je zabilježena. Vaš PIN za app je ${saved.userPin}. Sačuvajte ga uz broj telefona.`
+        : 'Rezervacija je zabilježena. Za izmjenu ili otkazivanje nazovite 062 290 622.';
       message.classList.remove('error');
     } catch (error) {
       await refreshBookings();
@@ -634,11 +642,12 @@ function initBookingModal() {
 function initUserApp() {
   const form = document.getElementById('userAppLogin');
   const phoneInput = document.getElementById('userAppPhone');
+  const pinInput = document.getElementById('userAppPin');
   const message = document.getElementById('userAppMessage');
   const panel = document.getElementById('userBookingsPanel');
   const list = document.getElementById('userBookingsList');
   const logout = document.getElementById('userAppLogout');
-  if (!form || !phoneInput || !message || !panel || !list) return;
+  if (!form || !phoneInput || !pinInput || !message || !panel || !list) return;
 
   function activeOwnerBookings(bookings) {
     const today = new Date().toISOString().slice(0, 10);
@@ -684,20 +693,26 @@ function initUserApp() {
     }).join('');
   }
 
-  async function lookup(phone) {
+  async function lookup(phone, pin) {
     const cleanPhone = phone.trim();
+    const cleanPin = cleanUserPin(pin);
     if (!normalizePhone(cleanPhone)) {
       message.textContent = 'Unesite broj telefona.';
+      message.classList.add('error');
+      return;
+    }
+    if (!cleanPin) {
+      message.textContent = 'Unesite PIN za pristup.';
       message.classList.add('error');
       return;
     }
     message.textContent = 'Učitavam vaše termine...';
     message.classList.remove('error');
     try {
-      const bookings = await loadUserBookings(cleanPhone);
+      const bookings = await loadUserBookings(cleanPhone, cleanPin);
       localStorage.setItem(USER_APP_PHONE_KEY, cleanPhone);
       renderUserBookings(bookings);
-      message.textContent = bookings.length ? 'Termini su učitani.' : 'Nema pronađenih termina za ovaj broj.';
+      message.textContent = bookings.length ? 'Termini su učitani.' : 'Nema pronađenih termina za ovaj broj i PIN.';
     } catch (error) {
       message.textContent = error.message || 'Nije moguće učitati termine.';
       message.classList.add('error');
@@ -706,16 +721,17 @@ function initUserApp() {
 
   form.addEventListener('submit', event => {
     event.preventDefault();
-    lookup(phoneInput.value);
+    lookup(phoneInput.value, pinInput.value);
   });
 
   if (logout) {
     logout.addEventListener('click', () => {
       localStorage.removeItem(USER_APP_PHONE_KEY);
       phoneInput.value = '';
+      pinInput.value = '';
       panel.hidden = true;
       list.innerHTML = '';
-      message.textContent = 'Unesite drugi broj telefona.';
+      message.textContent = 'Unesite drugi broj telefona i PIN.';
       phoneInput.focus();
     });
   }
@@ -723,7 +739,6 @@ function initUserApp() {
   const savedPhone = localStorage.getItem(USER_APP_PHONE_KEY) || '';
   if (savedPhone) {
     phoneInput.value = savedPhone;
-    lookup(savedPhone);
   }
 }
 
@@ -744,6 +759,7 @@ function initAdminPanel() {
   const createCategory = document.getElementById('adminCreateCategory');
   const createName = document.getElementById('adminCreateName');
   const createPhone = document.getElementById('adminCreatePhone');
+  const createUserPin = document.getElementById('adminCreateUserPin');
   const createNote = document.getElementById('adminCreateNote');
   const createPaid = document.getElementById('adminCreatePaid');
   const createMessage = document.getElementById('adminCreateMessage');
@@ -939,7 +955,7 @@ function initAdminPanel() {
       const statusText = item.status === 'cancelled' ? 'Otkazano' : (item.paid ? 'Plaćeno' : 'Nije plaćeno');
       tr.innerHTML = `
         <td><strong>${formatDate(item.date)}</strong><small>${item.time} · ${item.day || ''}</small></td>
-        <td><strong>${item.name}</strong><small>${item.phone}${item.email ? ` · ${item.email}` : ''}</small></td>
+        <td><strong>${item.name}</strong><small>${item.phone}${item.userPin ? ` · PIN ${item.userPin}` : ''}${item.email ? ` · ${item.email}` : ''}</small></td>
         <td><strong>${bookingTypeLabel(item.type)}</strong><small>${categoryLabel(item.category)}${item.type === 'monthly' ? ` · zauzeto ${monthsLabel(item.months)} · do ${formatDate(item.endDate || addMonths(item.date, item.months || 1))}` : ''}</small></td>
         <td><strong>${item.price} KM${item.type === 'monthly' ? '/mj.' : ''}</strong><small>${item.note || 'Bez napomene'}</small></td>
         <td><span class="status-pill ${statusClass}">${statusText}</span></td>
@@ -947,6 +963,7 @@ function initAdminPanel() {
           <div class="admin-actions">
             <button class="mini-btn paid" data-action="paid" data-id="${item.id}">${item.paid ? 'Neplaćeno' : 'Plaćeno'}</button>
             <button class="mini-btn" data-action="cancel" data-id="${item.id}">${item.status === 'cancelled' ? 'Vrati' : 'Otkaži'}</button>
+            <button class="mini-btn" data-action="pin" data-id="${item.id}">Novi PIN</button>
             <button class="mini-btn danger" data-action="delete" data-id="${item.id}">Briši</button>
           </div>
         </td>
@@ -1286,6 +1303,7 @@ function initAdminPanel() {
           category: 'standard',
           name: 'Primjer rezervacije',
           phone: '061 182 484',
+          userPin: '2026',
           email: '',
           note: 'Test unos',
           paid: false
@@ -1324,18 +1342,22 @@ function initAdminPanel() {
           category: createCategory.value,
           name: createName.value.trim(),
           phone: createPhone.value.trim(),
+          userPin: createUserPin ? cleanUserPin(createUserPin.value) : '',
           email: '',
           note: createNote.value.trim() || 'Ručni unos iz admin panela',
           months: createType.value === 'monthly' ? bookingMonths(createMonths.value) : 1,
           paid: createPaid.checked
         };
-        await createBooking(booking, adminPin);
+        const saved = await createBooking(booking, adminPin);
         createForm.reset();
         createDate.value = today;
         createTime.value = '18:00';
+        if (createUserPin) createUserPin.value = '';
         createMonthsWrap.hidden = true;
         await refreshAdmin();
-        if (createMessage) createMessage.textContent = 'Termin je dodat i odmah je zauzet u rasporedu.';
+        if (createMessage) createMessage.textContent = saved.userPin
+          ? `Termin je dodat. PIN za korisnika je ${saved.userPin}.`
+          : 'Termin je dodat i odmah je zauzet u rasporedu.';
       } catch (error) {
         if (createMessage) {
           createMessage.textContent = error.message || 'Termin nije dodat.';
