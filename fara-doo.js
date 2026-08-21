@@ -707,7 +707,7 @@ function initUserApp() {
         <article class="user-empty-card">
           <strong>Nema aktivnih termina za ovaj broj.</strong>
           <small>Provjerite da li je broj isti kao kod rezervacije ili otvorite raspored za novi termin.</small>
-          <a href="index.html#rezervacija" class="btn btn-dark">Otvori raspored</a>
+          <a href="#rezervacija" class="btn btn-dark">Otvori raspored</a>
         </article>
       `;
       return;

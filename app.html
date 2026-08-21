@@ -65,7 +65,7 @@
         <span class="mini-label">Rezervacija</span>
         <h2>Sala</h2>
         <p>PIN dobijete nakon online rezervacije ili od osoblja. Za novi termin otvorite raspored.</p>
-        <a class="btn btn-ghost" href="index.html#rezervacija">Rezerviši termin</a>
+        <a class="btn btn-ghost" href="#rezervacija">Rezerviši termin</a>
       </article>
     </section>
 
@@ -155,6 +155,91 @@
     </div>
   </section>
 </main>
+
+<div class="booking-modal" id="bookingModal" aria-hidden="true">
+  <div class="booking-backdrop" data-booking-close></div>
+  <div class="booking-dialog" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
+    <button class="booking-close" type="button" aria-label="Zatvori" data-booking-close>×</button>
+    <div class="booking-shell">
+      <div class="booking-copy">
+        <span class="section-eyebrow">Rezervacija sale</span>
+        <h2 id="bookingTitle">Odaberite termin</h2>
+        <p>Izaberite datum i sat za jedan termin. Za stalni mjesečni termin nazovite 062 290 622.</p>
+        <div class="booking-summary" id="bookingSummary">
+          <span>Termin</span>
+          <strong>50 KM</strong>
+          <small>Standardna rezervacija za 60 minuta</small>
+        </div>
+      </div>
+      <form class="booking-form" id="bookingForm">
+        <div class="week-schedule" aria-label="Sedmični raspored termina">
+          <div class="week-schedule-head">
+            <div>
+              <span class="mini-label">Sedmični raspored</span>
+              <strong id="bookingWeekLabel">Učitavanje...</strong>
+            </div>
+            <div class="week-actions">
+              <button type="button" class="week-nav" id="prevWeek" aria-label="Prethodna sedmica">‹</button>
+              <button type="button" class="week-nav" id="nextWeek" aria-label="Sljedeća sedmica">›</button>
+            </div>
+          </div>
+          <div class="schedule-legend">
+            <span><i class="free"></i>Slobodno</span>
+            <span><i class="busy"></i>Zauzeto</span>
+            <span><i class="closed"></i>Zatvoreno</span>
+            <span><i class="past"></i>Prošlo</span>
+          </div>
+          <div class="week-table-wrap" id="bookingWeekGrid"></div>
+        </div>
+        <label>Datum
+          <input type="date" id="bookingDate" name="date" required>
+        </label>
+        <label>Vrijeme
+          <select id="bookingTime" name="time" required></select>
+        </label>
+        <input type="hidden" id="bookingType" name="type" value="single">
+        <div class="monthly-field" id="bookingMonthsWrap" hidden>
+          <input type="hidden" id="bookingMonths" name="months" value="1">
+        </div>
+        <div class="booking-policy">
+          <strong>Stalni mjesečni termini</strong>
+          <p>Stalne termine ne možete rezervisati online. Za dogovor nazovite <a href="tel:+38762290622">062 290 622</a>, a osoblje će termin upisati kroz admin panel.</p>
+        </div>
+        <label>Kategorija
+          <select id="bookingCategory" name="category" required>
+            <option value="standard">Standardni termin</option>
+            <option value="school">Školarci, akademije ili klubovi 08–16h</option>
+          </select>
+        </label>
+        <div class="booking-grid-2">
+          <label>Telefon za potvrdu
+            <input type="tel" name="phone" autocomplete="tel" inputmode="tel" placeholder="npr. 061 234 567" required>
+          </label>
+          <label>Ime i prezime
+            <input type="text" name="name" autocomplete="name" placeholder="ime ekipe ili osobe" required>
+          </label>
+        </div>
+        <label>Email
+          <input type="email" name="email" autocomplete="email" placeholder="opcionalno">
+        </label>
+        <label>Napomena
+          <textarea name="note" rows="3" placeholder="npr. mali fudbal, poseban zahtjev"></textarea>
+        </label>
+        <div class="booking-policy">
+          <strong>Otkazivanje i izmjene termina</strong>
+          <p>Za otkazivanje ili izmjenu termina nazovite <a href="tel:+38762290622">062 290 622</a> najkasnije isti dan do 16:00. Ako korisnik ne dođe i ne najavi odsustvo, termin se obračunava kao iskorišten.</p>
+        </div>
+        <p class="booking-phone-note">Broj telefona je obavezan kako bi osoblje moglo potvrditi rezervaciju.</p>
+        <div class="own-bookings" id="ownBookings" hidden>
+          <span class="mini-label">Rezervacija poslana</span>
+          <div id="ownBookingsList"></div>
+        </div>
+        <p class="booking-message" id="bookingMessage" aria-live="polite"></p>
+        <button type="submit" class="btn btn-primary">Pošalji rezervaciju</button>
+      </form>
+    </div>
+  </div>
+</div>
 
 <script src="fara-doo.js"></script>
 </body>
