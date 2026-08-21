@@ -36,12 +36,34 @@
           "startDate": "2026-08-21",
           "endDate": "2026-09-20",
           "deleted": true
+        },
+        {
+          "id": "gym-1787315734916",
+          "createdAt": "2026-08-21T12:35:34.916Z",
+          "updatedAt": "2026-08-21T12:35:34.916Z",
+          "firstName": "Bakir",
+          "lastName": "Hadzic",
+          "phone": "0603472117",
+          "note": "test",
+          "accessCode": "7247",
+          "membershipTypeId": "monthly-until-16",
+          "startDate": "2026-08-21",
+          "endDate": "2026-09-20",
+          "deleted": false
         }
       ],
       "payments": [
         {
           "id": "pay-1787302210761",
           "memberId": "gym-1787302210761",
+          "date": "2026-08-21",
+          "amount": 30,
+          "note": "Uplata: Mjesečna do 16h",
+          "deleted": false
+        },
+        {
+          "id": "pay-1787315734916",
+          "memberId": "gym-1787315734916",
           "date": "2026-08-21",
           "amount": 30,
           "note": "Uplata: Mjesečna do 16h",
