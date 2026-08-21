@@ -355,17 +355,9 @@ function filteredGymMembers() {
 
 function updateGymStats() {
   const members = gymData.members.filter(member => !member.deleted);
-  const month = today.slice(0, 7);
-  const revenue = gymData.payments
-    .filter(payment => !payment.deleted && String(payment.date || '').startsWith(month))
-    .reduce((total, payment) => total + Number(payment.amount || 0), 0)
-    + (gymData.dailyPasses || [])
-      .filter(pass => !pass.deleted && String(pass.date || '').startsWith(month))
-      .reduce((total, pass) => total + Number(pass.amount || 0), 0);
   document.getElementById('gymStatActive').textContent = members.filter(member => gymStatus(member) === 'active').length;
   document.getElementById('gymStatExpiring').textContent = members.filter(member => gymStatus(member) === 'expiring').length;
   document.getElementById('gymStatExpired').textContent = members.filter(member => gymStatus(member) === 'expired').length;
-  document.getElementById('gymStatRevenue').textContent = money(revenue);
 }
 
 function renderGymRows() {
