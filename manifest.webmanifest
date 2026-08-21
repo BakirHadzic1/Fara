@@ -30,6 +30,12 @@
       "short_name": "Rezervacija",
       "description": "Otvori raspored i rezervaciju",
       "url": "/index.html#rezervacija"
+    },
+    {
+      "name": "Teretana demo",
+      "short_name": "Teretana",
+      "description": "Pogledaj demo članarina",
+      "url": "/teretana-demo.html"
     }
   ]
 }

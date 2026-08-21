@@ -1851,6 +1851,243 @@ body.modal-open{overflow:hidden;}
   font-weight:900;
 }
 
+.gym-demo-page{
+  background:
+    linear-gradient(145deg,rgba(223,31,45,.15),transparent 30%),
+    radial-gradient(circle at 88% 10%,rgba(73,241,118,.16),transparent 28%),
+    linear-gradient(180deg,#15191d,#0f1215);
+}
+.gym-demo-shell{
+  width:min(1180px,calc(100% - 32px));
+}
+.gym-demo-nav{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.gym-demo-hero{
+  padding:34px 0 24px;
+  max-width:860px;
+}
+.gym-demo-hero h1{
+  margin:8px 0 14px;
+  font-family:var(--font-display);
+  font-size:clamp(72px,15vw,164px);
+  line-height:.78;
+  text-transform:uppercase;
+}
+.gym-demo-hero p{
+  max-width:720px;
+  color:#d4dadd;
+  font-size:clamp(18px,2.6vw,27px);
+  line-height:1.42;
+}
+.gym-demo-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+.gym-demo-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);
+  gap:16px;
+  margin-top:16px;
+}
+.gym-demo-card{
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 24px 60px rgba(0,0,0,.22);
+  backdrop-filter:blur(16px);
+  padding:22px;
+}
+.gym-demo-card h2{
+  margin:8px 0 18px;
+  font-family:var(--font-display);
+  font-size:clamp(42px,7vw,72px);
+  line-height:.85;
+  text-transform:uppercase;
+}
+.demo-phone-label{
+  display:grid;
+  gap:8px;
+  color:#dfe4e7;
+  font:900 12px var(--font-mono);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.demo-phone-label input{
+  min-height:56px;
+  border:1px solid rgba(255,255,255,.16);
+  background:#fff;
+  color:#15191d;
+  padding:0 16px;
+  font:900 18px var(--font-body);
+}
+.demo-member-status{
+  margin-top:14px;
+  border:1px solid rgba(255,255,255,.12);
+  padding:18px;
+  background:rgba(0,0,0,.2);
+}
+.demo-member-status span{
+  display:inline-flex;
+  min-height:28px;
+  align-items:center;
+  padding:0 10px;
+  margin-bottom:14px;
+  font:900 11px var(--font-mono);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.demo-member-status.active span{background:rgba(73,241,118,.14);color:#49f176;}
+.demo-member-status.expiring span{background:rgba(255,193,7,.14);color:#ffd36a;}
+.demo-member-status strong{
+  display:block;
+  font-size:28px;
+  line-height:1.05;
+}
+.demo-member-status small,.gym-member-preview p{
+  display:block;
+  margin-top:8px;
+  color:#cfd5d8;
+  line-height:1.5;
+}
+.demo-timeline{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.demo-timeline div{
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.16);
+  padding:12px;
+}
+.demo-timeline span,.gym-demo-stats span{
+  display:block;
+  color:#aeb7bc;
+  font:900 10px var(--font-mono);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.demo-timeline strong{
+  display:block;
+  margin-top:6px;
+  font-size:15px;
+}
+.gym-demo-section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+}
+.demo-badge{
+  display:inline-flex;
+  align-items:center;
+  min-height:34px;
+  padding:0 12px;
+  background:rgba(223,31,45,.16);
+  color:#ff4454;
+  font:900 11px var(--font-mono);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.gym-demo-stats{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:8px 0 16px;
+}
+.gym-demo-stats div{
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.2);
+  padding:14px;
+}
+.gym-demo-stats strong{
+  display:block;
+  margin-top:8px;
+  font-family:var(--font-display);
+  font-size:42px;
+  line-height:.85;
+}
+.gym-demo-stats small{
+  color:#cfd5d8;
+}
+.gym-demo-table-wrap{
+  overflow:auto;
+}
+.gym-demo-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:760px;
+}
+.gym-demo-table th,.gym-demo-table td{
+  padding:14px 12px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+  text-align:left;
+}
+.gym-demo-table th{
+  color:#aeb7bc;
+  font:900 10px var(--font-mono);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.gym-demo-table td small{
+  display:block;
+  margin-top:4px;
+  color:#aeb7bc;
+}
+.demo-status{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:0 10px;
+  font:900 10px var(--font-mono);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.demo-status.green{background:rgba(73,241,118,.14);color:#49f176;}
+.demo-status.yellow{background:rgba(255,193,7,.14);color:#ffd36a;}
+.demo-status.red{background:rgba(255,80,90,.14);color:#ff7b85;}
+.gym-demo-table button{
+  border:1px solid rgba(255,255,255,.16);
+  background:#fff;
+  color:#15191d;
+  min-height:34px;
+  padding:0 12px;
+  font:900 11px var(--font-mono);
+  text-transform:uppercase;
+}
+.gym-flow{
+  margin-top:16px;
+}
+.gym-flow-steps{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+.gym-flow-steps div{
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.18);
+  padding:14px;
+}
+.gym-flow-steps span{
+  color:#ff4454;
+  font:900 11px var(--font-mono);
+  letter-spacing:.12em;
+}
+.gym-flow-steps strong{
+  display:block;
+  margin:10px 0 6px;
+  font-size:17px;
+}
+.gym-flow-steps small{
+  color:#cfd5d8;
+  line-height:1.45;
+}
+
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease;}
 .reveal.in{opacity:1;transform:translateY(0);}
 
@@ -2110,8 +2347,10 @@ body.modal-open{overflow:hidden;}
   .user-app-header{padding-bottom:18px;}
   .user-app-admin{min-height:38px;padding:0 12px;font-size:10px;}
   .user-app-hero{padding:22px 0 20px;}
-  .user-app-grid,.user-app-actions,.install-steps-grid{grid-template-columns:1fr;}
-  .user-login-card,.user-help-card,.user-bookings-panel,.app-action-card,.install-guide{padding:16px;}
+  .user-app-grid,.user-app-actions,.install-steps-grid,.gym-demo-grid,.gym-demo-stats,.gym-flow-steps{grid-template-columns:1fr;}
+  .user-login-card,.user-help-card,.user-bookings-panel,.app-action-card,.install-guide,.gym-demo-card{padding:16px;}
+  .demo-timeline{grid-template-columns:1fr;}
+  .gym-demo-section-head{flex-direction:column;}
   .user-booking-card{grid-template-columns:1fr;align-items:start;}
   .user-booking-status{justify-self:start;}
   .user-panel-head{align-items:flex-start;flex-direction:column;}

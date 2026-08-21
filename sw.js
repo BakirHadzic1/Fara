@@ -3,6 +3,7 @@ const APP_SHELL = [
   '/',
   '/index.html',
   '/app.html',
+  '/teretana-demo.html',
   '/fara-doo.css',
   '/fara-doo.js',
   '/manifest.webmanifest',
