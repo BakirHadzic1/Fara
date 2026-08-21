@@ -158,7 +158,14 @@ async function loadGym(adminPin) {
   const data = await requestGym(adminPin, {
     method: 'GET'
   });
-  return data.tenant || { membershipTypes: [], members: [], payments: [], visits: [] };
+  return data.tenant || { membershipTypes: [], members: [], payments: [], visits: [], dailyPasses: [] };
+}
+
+async function loadGymMember(phone, code) {
+  const response = await fetch(`${GYM_API_URL}?mine=1&tenantId=${encodeURIComponent(GYM_TENANT_ID)}&phone=${encodeURIComponent(phone)}&code=${encodeURIComponent(code)}`);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Član nije pronađen.');
+  return data;
 }
 
 async function gymAction(adminPin, action, payload = {}) {
@@ -647,6 +654,14 @@ function initUserApp() {
   const panel = document.getElementById('userBookingsPanel');
   const list = document.getElementById('userBookingsList');
   const logout = document.getElementById('userAppLogout');
+  const gymForm = document.getElementById('gymUserLogin');
+  const gymPhone = document.getElementById('gymUserPhone');
+  const gymCode = document.getElementById('gymUserCode');
+  const gymMessage = document.getElementById('gymUserMessage');
+  const gymPanel = document.getElementById('gymProfilePanel');
+  const gymProfileName = document.getElementById('gymProfileName');
+  const gymProfileGrid = document.getElementById('gymProfileGrid');
+  const gymLogout = document.getElementById('gymUserLogout');
   if (!form || !phoneInput || !pinInput || !message || !panel || !list) return;
 
   function activeOwnerBookings(bookings) {
@@ -740,6 +755,87 @@ function initUserApp() {
   if (savedPhone) {
     phoneInput.value = savedPhone;
   }
+
+  function gymProfileStatus(member) {
+    return gymStatus(member);
+  }
+
+  function renderGymProfile(data) {
+    if (!gymPanel || !gymProfileName || !gymProfileGrid) return;
+    const member = data.member || {};
+    const type = data.membershipType || {};
+    const payments = data.payments || [];
+    const visits = data.visits || [];
+    const status = gymProfileStatus(member);
+    const paidTotal = payments.reduce((total, payment) => total + Number(payment.amount || 0), 0);
+    const lastPayment = payments[payments.length - 1];
+    const lastVisit = visits[visits.length - 1];
+    gymProfileName.textContent = memberFullName(member) || 'Članarina';
+    gymProfileGrid.innerHTML = `
+      <article class="gym-profile-card primary">
+        <span>Status</span>
+        <strong>${gymStatusLabel(status)}</strong>
+        <small>${type.name || 'Članarina'} · do ${formatDate(member.endDate)}</small>
+      </article>
+      <article class="gym-profile-card">
+        <span>Početak</span>
+        <strong>${formatDate(member.startDate)}</strong>
+        <small>${member.phone || ''}</small>
+      </article>
+      <article class="gym-profile-card">
+        <span>Uplaćeno</span>
+        <strong>${money(paidTotal)}</strong>
+        <small>${lastPayment ? `Zadnja uplata: ${formatDate(lastPayment.date)}` : 'Nema evidentirane uplate'}</small>
+      </article>
+      <article class="gym-profile-card">
+        <span>Dolasci</span>
+        <strong>${visits.length}</strong>
+        <small>${lastVisit ? `Zadnji dolazak: ${formatDate(lastVisit.date)}` : 'Još nema evidentiranih dolazaka'}</small>
+      </article>
+      ${member.note ? `<article class="gym-profile-card wide"><span>Napomena</span><strong>${member.note}</strong><small>Za izmjene se javite osoblju.</small></article>` : ''}
+    `;
+    gymPanel.hidden = false;
+  }
+
+  if (gymForm && gymPhone && gymCode && gymMessage) {
+    gymForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const phone = gymPhone.value.trim();
+      const code = cleanUserPin(gymCode.value);
+      if (!normalizePhone(phone)) {
+        gymMessage.textContent = 'Unesite broj telefona.';
+        gymMessage.classList.add('error');
+        return;
+      }
+      if (!code) {
+        gymMessage.textContent = 'Unesite kod koji ste dobili od osoblja.';
+        gymMessage.classList.add('error');
+        return;
+      }
+      gymMessage.textContent = 'Učitavam profil...';
+      gymMessage.classList.remove('error');
+      try {
+        const data = await loadGymMember(phone, code);
+        renderGymProfile(data);
+        gymMessage.textContent = 'Profil je učitan.';
+      } catch (error) {
+        if (gymPanel) gymPanel.hidden = true;
+        gymMessage.textContent = error.message || 'Profil nije pronađen.';
+        gymMessage.classList.add('error');
+      }
+    });
+  }
+
+  if (gymLogout && gymPhone && gymCode && gymMessage) {
+    gymLogout.addEventListener('click', () => {
+      gymPhone.value = '';
+      gymCode.value = '';
+      if (gymPanel) gymPanel.hidden = true;
+      if (gymProfileGrid) gymProfileGrid.innerHTML = '';
+      gymMessage.textContent = 'Unesite drugi broj telefona i kod.';
+      gymPhone.focus();
+    });
+  }
 }
 
 function initAdminPanel() {
@@ -778,11 +874,15 @@ function initAdminPanel() {
   const gymFirstName = document.getElementById('gymFirstName');
   const gymLastName = document.getElementById('gymLastName');
   const gymPhone = document.getElementById('gymPhone');
+  const gymAccessCode = document.getElementById('gymAccessCode');
   const gymMembershipType = document.getElementById('gymMembershipType');
   const gymStartDate = document.getElementById('gymStartDate');
   const gymEndDate = document.getElementById('gymEndDate');
   const gymNote = document.getElementById('gymNote');
   const gymPaidNow = document.getElementById('gymPaidNow');
+  const gymDailyName = document.getElementById('gymDailyName');
+  const gymDailyAmount = document.getElementById('gymDailyAmount');
+  const gymDailyAdd = document.getElementById('gymDailyAdd');
   const gymResetForm = document.getElementById('gymResetForm');
   const gymMessage = document.getElementById('gymMessage');
   const gymTypeList = document.getElementById('gymTypeList');
@@ -795,7 +895,7 @@ function initAdminPanel() {
 
   let adminPin = sessionStorage.getItem('faraAdminPin') || '';
   let adminBookings = [];
-  let gymData = { membershipTypes: [], members: [], payments: [], visits: [] };
+  let gymData = { membershipTypes: [], members: [], payments: [], visits: [], dailyPasses: [] };
   const today = new Date().toISOString().slice(0, 10);
   const adminTimeSlots = [];
   let adminWeekStart = startOfWeek(toLocalDate(today));
@@ -990,8 +1090,14 @@ function initAdminPanel() {
     return memberPayments(memberId).reduce((total, payment) => total + Number(payment.amount || 0), 0);
   }
 
+  function memberCurrentPaidTotal(member) {
+    return memberPayments(member.id)
+      .filter(payment => String(payment.date || '') >= String(member.startDate || '') && String(payment.date || '') <= String(member.endDate || '9999-12-31'))
+      .reduce((total, payment) => total + Number(payment.amount || 0), 0);
+  }
+
   function memberDebt(member) {
-    return Math.max(0, Number(gymType(member.membershipTypeId).price || 0) - memberPaidTotal(member.id));
+    return Math.max(0, Number(gymType(member.membershipTypeId).price || 0) - memberCurrentPaidTotal(member));
   }
 
   function updateGymEndDate() {
@@ -1029,7 +1135,10 @@ function initAdminPanel() {
     const month = today.slice(0, 7);
     const revenue = gymData.payments
       .filter(payment => !payment.deleted && String(payment.date || '').startsWith(month))
-      .reduce((total, payment) => total + Number(payment.amount || 0), 0);
+      .reduce((total, payment) => total + Number(payment.amount || 0), 0)
+      + (gymData.dailyPasses || [])
+        .filter(pass => !pass.deleted && String(pass.date || '').startsWith(month))
+        .reduce((total, pass) => total + Number(pass.amount || 0), 0);
     const active = members.filter(member => gymStatus(member) === 'active').length;
     const expiring = members.filter(member => gymStatus(member) === 'expiring').length;
     const expired = members.filter(member => gymStatus(member) === 'expired').length;
@@ -1055,7 +1164,7 @@ function initAdminPanel() {
       tr.innerHTML = `
         <td>
           <div class="gym-member-cell">
-            <span><strong>${memberFullName(member)}</strong><small>${member.phone}${member.note ? ` · ${member.note}` : ''}</small></span>
+            <span><strong>${memberFullName(member)}</strong><small>${member.phone} · Kod ${member.accessCode || 'nije dodijeljen'}${member.note ? ` · ${member.note}` : ''}</small></span>
           </div>
         </td>
         <td><strong>${type.name}</strong><small>${formatDate(member.startDate)} - ${formatDate(member.endDate)}</small></td>
@@ -1065,7 +1174,9 @@ function initAdminPanel() {
         <td>
           <div class="admin-actions">
             <button class="mini-btn paid" data-gym-action="visit" data-id="${member.id}">Dolazak</button>
-            <button class="mini-btn paid" data-gym-action="payment" data-id="${member.id}">Uplata</button>
+            <button class="mini-btn paid" data-gym-action="renew" data-id="${member.id}">Produži</button>
+            <button class="mini-btn" data-gym-action="payment" data-id="${member.id}">Uplata</button>
+            <button class="mini-btn" data-gym-action="code" data-id="${member.id}">Novi kod</button>
             <button class="mini-btn" data-gym-action="edit" data-id="${member.id}">Uredi</button>
             <button class="mini-btn danger" data-gym-action="delete" data-id="${member.id}">Briši</button>
           </div>
@@ -1099,6 +1210,7 @@ function initAdminPanel() {
     gymMemberForm.reset();
     if (gymMemberId) gymMemberId.value = '';
     if (gymStartDate) gymStartDate.value = today;
+    if (gymAccessCode) gymAccessCode.value = '';
     if (document.getElementById('gymFormTitle')) document.getElementById('gymFormTitle').textContent = 'Dodaj člana';
     renderGymTypes();
   }
@@ -1110,6 +1222,7 @@ function initAdminPanel() {
     gymFirstName.value = member.firstName || '';
     gymLastName.value = member.lastName || '';
     gymPhone.value = member.phone || '';
+    if (gymAccessCode) gymAccessCode.value = member.accessCode || '';
     gymMembershipType.value = member.membershipTypeId || gymMembershipType.value;
     gymStartDate.value = member.startDate || today;
     gymEndDate.value = member.endDate || today;
@@ -1200,15 +1313,66 @@ function initAdminPanel() {
         if (action === 'visit') {
           await gymAction(adminPin, 'addVisit', { memberId: member.id, date: today });
         }
+        if (action === 'renew') {
+          const type = gymType(member.membershipTypeId);
+          const amount = Number(prompt('Iznos produženja (KM):', type.price) || 0);
+          if (!amount) return;
+          await gymAction(adminPin, 'renewMember', {
+            memberId: member.id,
+            membershipTypeId: member.membershipTypeId,
+            amount,
+            startDate: today,
+            note: 'Produženje članarine iz admin panela'
+          });
+        }
         if (action === 'payment') {
           const type = gymType(member.membershipTypeId);
           const amount = Number(prompt('Iznos uplate (KM):', type.price) || 0);
           if (!amount) return;
           await gymAction(adminPin, 'addPayment', { memberId: member.id, amount, date: today, note: 'Uplata iz admin panela' });
         }
+        if (action === 'code') {
+          await gymAction(adminPin, 'accessCode', { id: member.id });
+        }
         await refreshGym();
       } catch (error) {
         alert(error.message || 'Akcija nije uspjela.');
+      }
+    });
+  }
+
+  if (gymDailyAdd) {
+    gymDailyAdd.addEventListener('click', async () => {
+      if (!adminPin) return;
+      const dailyType = gymType('daily');
+      const amount = Number(gymDailyAmount?.value || dailyType.price || 0);
+      if (!amount) {
+        alert('Unesite iznos dnevne karte.');
+        return;
+      }
+      gymDailyAdd.disabled = true;
+      gymDailyAdd.textContent = 'Čuvam...';
+      try {
+        await gymAction(adminPin, 'dailyPass', {
+          date: today,
+          amount,
+          name: gymDailyName?.value.trim() || 'Dnevna karta'
+        });
+        if (gymDailyName) gymDailyName.value = '';
+        if (gymDailyAmount) gymDailyAmount.value = '';
+        await refreshGym();
+        if (gymMessage) {
+          gymMessage.textContent = 'Dnevna karta je evidentirana.';
+          gymMessage.classList.remove('error');
+        }
+      } catch (error) {
+        if (gymMessage) {
+          gymMessage.textContent = error.message || 'Dnevna karta nije sačuvana.';
+          gymMessage.classList.add('error');
+        }
+      } finally {
+        gymDailyAdd.disabled = false;
+        gymDailyAdd.textContent = 'Dodaj dnevnu kartu';
       }
     });
   }
@@ -1228,6 +1392,7 @@ function initAdminPanel() {
           firstName: gymFirstName.value.trim(),
           lastName: gymLastName.value.trim(),
           phone: gymPhone.value.trim(),
+          accessCode: gymAccessCode ? gymAccessCode.value.trim() : '',
           note: gymNote.value.trim(),
           membershipTypeId: gymMembershipType.value,
           startDate: gymStartDate.value,

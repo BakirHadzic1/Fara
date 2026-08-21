@@ -74,7 +74,8 @@ function defaultData() {
         membershipTypes: DEFAULT_TYPES,
         members: [],
         payments: [],
-        visits: []
+        visits: [],
+        dailyPasses: []
       }
     }
   };
@@ -89,6 +90,7 @@ function normalizeData(data) {
     tenant.members = Array.isArray(tenant.members) ? tenant.members : [];
     tenant.payments = Array.isArray(tenant.payments) ? tenant.payments : [];
     tenant.visits = Array.isArray(tenant.visits) ? tenant.visits : [];
+    tenant.dailyPasses = Array.isArray(tenant.dailyPasses) ? tenant.dailyPasses : [];
   });
   return normalized;
 }
@@ -150,6 +152,24 @@ function cleanId(value) {
   return cleanText(value, 80).toLowerCase().replace(/[^a-z0-9-]/g, '') || DEFAULT_TENANT;
 }
 
+function cleanAccessCode(value) {
+  return String(value || '').replace(/\D/g, '').slice(0, 8);
+}
+
+function makeAccessCode() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function normalizePhone(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+function samePhone(left, right) {
+  const a = normalizePhone(left);
+  const b = normalizePhone(right);
+  return Boolean(a && b && (a === b || a.endsWith(b) || b.endsWith(a)));
+}
+
 function todayValue() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -174,7 +194,28 @@ function publicTenant(tenant) {
     membershipTypes: tenant.membershipTypes,
     members: tenant.members.filter(member => !member.deleted),
     payments: tenant.payments.filter(payment => !payment.deleted),
-    visits: tenant.visits.filter(visit => !visit.deleted)
+    visits: tenant.visits.filter(visit => !visit.deleted),
+    dailyPasses: tenant.dailyPasses.filter(pass => !pass.deleted)
+  };
+}
+
+function publicMemberProfile(tenant, member) {
+  const type = findType(tenant, member.membershipTypeId);
+  return {
+    member: {
+      id: member.id,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      phone: member.phone,
+      note: member.note,
+      membershipTypeId: member.membershipTypeId,
+      startDate: member.startDate,
+      endDate: member.endDate,
+      status: memberStatus(member)
+    },
+    membershipType: type,
+    payments: tenant.payments.filter(payment => payment.memberId === member.id && !payment.deleted),
+    visits: tenant.visits.filter(visit => visit.memberId === member.id && !visit.deleted)
   };
 }
 
@@ -189,16 +230,27 @@ module.exports = async function handler(req, res) {
     return send(res, 500, { error: 'Server nije podešen: nedostaje GitHub token.' });
   }
 
-  if (!isAdmin(req)) {
-    return send(res, 401, { error: 'Potreban je admin PIN.' });
-  }
-
   try {
     if (req.method === 'GET') {
       const { gym, readonly } = await readGymFile({ allowPublicFallback: true });
       const tenantId = tenantIdFrom(req);
       const tenant = gym.tenants[tenantId] || gym.tenants[DEFAULT_TENANT];
+      const url = new URL(req.url, 'https://www.fara.ba');
+      if (url.searchParams.get('mine') === '1') {
+        const phone = cleanText(url.searchParams.get('phone'), 40);
+        const accessCode = cleanAccessCode(url.searchParams.get('code'));
+        if (!normalizePhone(phone)) return send(res, 400, { error: 'Unesite broj telefona.' });
+        if (!accessCode) return send(res, 400, { error: 'Unesite kod za pristup.' });
+        const member = tenant.members.find(item => !item.deleted && samePhone(item.phone, phone) && cleanAccessCode(item.accessCode) === accessCode);
+        if (!member) return send(res, 404, { error: 'Član nije pronađen za uneseni broj i kod.' });
+        return send(res, 200, { tenantId, owner: true, readonly, ...publicMemberProfile(tenant, member) });
+      }
+      if (!isAdmin(req)) return send(res, 401, { error: 'Potreban je admin PIN.' });
       return send(res, 200, { tenantId, tenant: publicTenant(tenant), admin: true, readonly });
+    }
+
+    if (!isAdmin(req)) {
+      return send(res, 401, { error: 'Potreban je admin PIN.' });
     }
 
     if (req.method === 'POST') {
@@ -212,20 +264,23 @@ module.exports = async function handler(req, res) {
           membershipTypes: DEFAULT_TYPES,
           members: [],
           payments: [],
-          visits: []
+          visits: [],
+          dailyPasses: []
         };
         const tenant = gym.tenants[tenantId];
 
         if (action === 'saveMember') {
           const type = findType(tenant, cleanId(body.membershipTypeId));
+          const existing = tenant.members.find(item => item.id === cleanText(body.id, 80));
           const member = {
             id: cleanText(body.id, 80) || `gym-${Date.now()}`,
-            createdAt: cleanText(body.createdAt, 40) || new Date().toISOString(),
+            createdAt: cleanText(body.createdAt, 40) || existing?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             firstName: cleanText(body.firstName, 80),
             lastName: cleanText(body.lastName, 80),
             phone: cleanText(body.phone, 40),
             note: cleanText(body.note, 800),
+            accessCode: cleanAccessCode(body.accessCode) || cleanAccessCode(existing?.accessCode) || makeAccessCode(),
             membershipTypeId: type.id,
             startDate: cleanText(body.startDate, 20) || todayValue(),
             endDate: cleanText(body.endDate, 20) || addDays(todayValue(), type.durationDays),
@@ -246,6 +301,14 @@ module.exports = async function handler(req, res) {
               deleted: false
             });
           }
+          return { member };
+        }
+
+        if (action === 'accessCode') {
+          const member = tenant.members.find(item => item.id === body.id && !item.deleted);
+          if (!member) throw Object.assign(new Error('Član nije pronađen.'), { publicStatus: 404 });
+          member.accessCode = makeAccessCode();
+          member.updatedAt = new Date().toISOString();
           return { member };
         }
 
@@ -270,6 +333,44 @@ module.exports = async function handler(req, res) {
           };
           tenant.payments.push(payment);
           return { payment };
+        }
+
+        if (action === 'renewMember') {
+          const member = tenant.members.find(item => item.id === body.memberId && !item.deleted);
+          if (!member) throw Object.assign(new Error('Član nije pronađen.'), { publicStatus: 404 });
+          const type = findType(tenant, cleanId(body.membershipTypeId || member.membershipTypeId));
+          const startDate = cleanText(body.startDate, 20) || todayValue();
+          const amount = Number(body.amount || type.price || 0);
+          member.membershipTypeId = type.id;
+          member.startDate = startDate;
+          member.endDate = addDays(startDate, type.durationDays);
+          member.updatedAt = new Date().toISOString();
+          if (amount > 0) {
+            tenant.payments.push({
+              id: `pay-${Date.now()}`,
+              memberId: member.id,
+              date: startDate,
+              amount,
+              note: cleanText(body.note, 300) || `Produženje: ${type.name}`,
+              deleted: false
+            });
+          }
+          return { member };
+        }
+
+        if (action === 'dailyPass') {
+          const type = findType(tenant, 'daily');
+          const pass = {
+            id: `daily-${Date.now()}`,
+            date: cleanText(body.date, 20) || todayValue(),
+            amount: Number(body.amount || type.price || 0),
+            name: cleanText(body.name, 120) || 'Dnevna karta',
+            phone: cleanText(body.phone, 40),
+            note: cleanText(body.note, 300),
+            deleted: false
+          };
+          tenant.dailyPasses.push(pass);
+          return { pass };
         }
 
         if (action === 'addVisit') {

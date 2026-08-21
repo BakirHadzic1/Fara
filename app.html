@@ -79,11 +79,51 @@
       <strong>Rezerviši novi termin</strong>
       <small>Otvori raspored slobodnih termina.</small>
     </a>
-    <a href="teretana-demo.html" class="app-action-card">
+    <a href="#teretana" class="app-action-card">
       <span>02</span>
-      <strong>Teretana demo</strong>
-      <small>Pogledaj kako bi članovi vidjeli članarinu i istek.</small>
+      <strong>Moja teretana</strong>
+      <small>Provjeri članarinu, status i dolaske uz kod od osoblja.</small>
     </a>
+  </section>
+
+  <section class="user-gym-section" id="teretana">
+    <div class="install-guide-head">
+      <span class="section-eyebrow">Teretana</span>
+      <h2>Profil člana</h2>
+      <p>Član se prijavljuje brojem telefona i kodom koji dobije od osoblja. Na profilu vidi članarinu, uplate, status i dolaske.</p>
+    </div>
+
+    <section class="user-app-grid">
+      <form class="user-login-card" id="gymUserLogin">
+        <label>
+          Broj telefona
+          <input id="gymUserPhone" type="tel" autocomplete="tel" placeholder="npr. 061 234 567" required>
+        </label>
+        <label>
+          Kod člana
+          <input id="gymUserCode" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="4 cifre" maxlength="8" required>
+        </label>
+        <button type="submit" class="btn btn-primary">Prikaži članarinu</button>
+        <p class="user-app-message" id="gymUserMessage" aria-live="polite"></p>
+      </form>
+
+      <article class="user-help-card">
+        <span class="mini-label">Info</span>
+        <h2>Kod daje osoblje</h2>
+        <p>Ako nemate kod ili vam je članarina istekla, javite se osoblju na recepciji Sport Centra.</p>
+      </article>
+    </section>
+
+    <section class="user-bookings-panel gym-profile-panel" id="gymProfilePanel" hidden>
+      <div class="user-panel-head">
+        <div>
+          <span class="section-eyebrow">Moj profil</span>
+          <h2 id="gymProfileName">Članarina</h2>
+        </div>
+        <button type="button" class="mini-btn" id="gymUserLogout">Promijeni prijavu</button>
+      </div>
+      <div class="gym-profile-grid" id="gymProfileGrid"></div>
+    </section>
   </section>
 
   <section class="install-guide" id="instalacija">

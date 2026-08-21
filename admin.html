@@ -268,6 +268,9 @@
               <label>Telefon
                 <input type="tel" id="gymPhone" required>
               </label>
+              <label>Kod za člana
+                <input type="text" id="gymAccessCode" inputmode="numeric" maxlength="8" placeholder="automatski">
+              </label>
               <label>Vrsta članarine
                 <select id="gymMembershipType" required></select>
               </label>
@@ -294,6 +297,17 @@
             <span class="section-eyebrow">Cijene</span>
             <h2>Članarine</h2>
             <div class="admin-mini-list" id="gymTypeList"></div>
+            <div class="daily-pass-box">
+              <span class="section-eyebrow">Dnevna karta</span>
+              <h3>Brzi unos</h3>
+              <label>Ime / napomena
+                <input type="text" id="gymDailyName" placeholder="Npr. dnevna karta">
+              </label>
+              <label>Iznos
+                <input type="number" id="gymDailyAmount" min="0" step="1" placeholder="5">
+              </label>
+              <button class="btn btn-primary" type="button" id="gymDailyAdd">Dodaj dnevnu kartu</button>
+            </div>
           </section>
         </section>
 

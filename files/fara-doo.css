@@ -1240,6 +1240,39 @@ body.modal-open{overflow:hidden;}
   align-items:center;
   gap:8px;
 }
+.daily-pass-box{
+  display:grid;
+  gap:10px;
+  margin-top:22px;
+  padding-top:18px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.daily-pass-box h3{
+  margin:0;
+  color:#fff;
+  font-family:var(--font-display);
+  font-size:32px;
+  line-height:.9;
+  text-transform:uppercase;
+}
+.daily-pass-box label{
+  display:grid;
+  gap:7px;
+  color:#9da8b2;
+  font:900 11px var(--font-mono);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.daily-pass-box input{
+  min-height:44px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;
+  background:#0c1117;
+  color:#fff;
+  padding:0 12px;
+  font:700 14px var(--font-body);
+  outline:none;
+}
 .admin-schedule-panel{
   margin-bottom:14px;
 }
@@ -1776,6 +1809,58 @@ body.modal-open{overflow:hidden;}
 .app-action-card.muted{
   opacity:.74;
 }
+.user-gym-section{
+  margin-top:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:
+    linear-gradient(135deg,rgba(73,241,118,.1),rgba(255,255,255,.035)),
+    rgba(0,0,0,.14);
+  padding:22px;
+}
+.user-gym-section .user-app-grid{
+  margin-top:16px;
+}
+.gym-profile-panel{
+  margin-top:16px;
+}
+.gym-profile-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+.gym-profile-card{
+  min-height:130px;
+  display:grid;
+  align-content:space-between;
+  gap:12px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.18);
+  padding:16px;
+}
+.gym-profile-card.primary{
+  border-color:rgba(73,241,118,.36);
+  background:linear-gradient(135deg,rgba(73,241,118,.18),rgba(0,0,0,.18));
+}
+.gym-profile-card.wide{
+  grid-column:span 2;
+}
+.gym-profile-card span{
+  color:#9da8b2;
+  font:900 11px var(--font-mono);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.gym-profile-card strong{
+  color:#fff;
+  font-family:var(--font-display);
+  font-size:34px;
+  line-height:.9;
+  text-transform:uppercase;
+}
+.gym-profile-card small{
+  color:#cfd5d8;
+  line-height:1.45;
+}
 
 .install-guide{
   margin-top:16px;
@@ -2161,6 +2246,7 @@ body.modal-open{overflow:hidden;}
   .admin-form-head{align-items:flex-start;flex-direction:column;}
   .admin-form-head p{text-align:left;}
   .admin-create-form,.gym-member-form{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .gym-profile-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .map-panel{grid-template-columns:1fr;}
 }
 
@@ -2348,6 +2434,9 @@ body.modal-open{overflow:hidden;}
   .user-app-admin{min-height:38px;padding:0 12px;font-size:10px;}
   .user-app-hero{padding:22px 0 20px;}
   .user-app-grid,.user-app-actions,.install-steps-grid,.gym-demo-grid,.gym-demo-stats,.gym-flow-steps{grid-template-columns:1fr;}
+  .gym-profile-grid{grid-template-columns:1fr;}
+  .gym-profile-card.wide{grid-column:auto;}
+  .user-gym-section{padding:16px;}
   .user-login-card,.user-help-card,.user-bookings-panel,.app-action-card,.install-guide,.gym-demo-card{padding:16px;}
   .demo-timeline{grid-template-columns:1fr;}
   .gym-demo-section-head{flex-direction:column;}
