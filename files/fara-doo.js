@@ -647,6 +647,9 @@ function initBookingModal() {
 }
 
 function initUserApp() {
+  const appTabs = Array.from(document.querySelectorAll('[data-app-tab]'));
+  const appSections = Array.from(document.querySelectorAll('[data-app-section]'));
+  const appRefresh = document.getElementById('appRefresh');
   const form = document.getElementById('userAppLogin');
   const phoneInput = document.getElementById('userAppPhone');
   const pinInput = document.getElementById('userAppPin');
@@ -663,6 +666,30 @@ function initUserApp() {
   const gymProfileGrid = document.getElementById('gymProfileGrid');
   const gymLogout = document.getElementById('gymUserLogout');
   if (!form || !phoneInput || !pinInput || !message || !panel || !list) return;
+
+  function showAppSection(sectionId, options = {}) {
+    const id = appSections.some(section => section.dataset.appSection === sectionId) ? sectionId : 'termini';
+    appSections.forEach(section => {
+      section.hidden = section.dataset.appSection !== id;
+    });
+    appTabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.appTab === id);
+    });
+    if (options.updateHash !== false && window.location.hash !== `#${id}`) {
+      window.history.replaceState(null, '', `#${id}`);
+    }
+  }
+
+  appTabs.forEach(tab => {
+    tab.addEventListener('click', event => {
+      event.preventDefault();
+      showAppSection(tab.dataset.appTab);
+    });
+  });
+
+  window.addEventListener('hashchange', () => {
+    showAppSection((window.location.hash || '#termini').replace('#', ''), { updateHash: false });
+  });
 
   function activeOwnerBookings(bookings) {
     const today = new Date().toISOString().slice(0, 10);
@@ -836,6 +863,23 @@ function initUserApp() {
       gymPhone.focus();
     });
   }
+
+  if (appRefresh) {
+    appRefresh.addEventListener('click', () => {
+      const active = appTabs.find(tab => tab.classList.contains('active'))?.dataset.appTab || 'termini';
+      if (active === 'termini' && phoneInput.value.trim() && cleanUserPin(pinInput.value)) {
+        lookup(phoneInput.value, pinInput.value);
+        return;
+      }
+      if (active === 'teretana' && gymPhone?.value.trim() && cleanUserPin(gymCode?.value)) {
+        gymForm?.requestSubmit();
+        return;
+      }
+      window.location.reload();
+    });
+  }
+
+  showAppSection((window.location.hash || '#termini').replace('#', ''), { updateHash: false });
 }
 
 function initAdminPanel() {

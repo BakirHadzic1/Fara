@@ -1611,15 +1611,28 @@ body.modal-open{overflow:hidden;}
   align-items:center;
   justify-content:space-between;
   gap:16px;
-  padding:14px 0 32px;
+  padding:14px 0 20px;
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(21,25,29,.88);
+  backdrop-filter:blur(18px);
 }
 .user-app-header .logo{
   color:#fff;
   text-decoration:none;
 }
-.user-app-admin{
+.user-app-nav{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  flex:1;
+}
+.user-app-tab,.user-app-refresh,.user-app-admin{
   display:inline-flex;
   align-items:center;
+  justify-content:center;
   min-height:42px;
   padding:0 16px;
   border:1px solid rgba(255,255,255,.16);
@@ -1629,16 +1642,37 @@ body.modal-open{overflow:hidden;}
   letter-spacing:.08em;
   text-transform:uppercase;
 }
+.user-app-tab{
+  min-width:132px;
+  background:rgba(255,255,255,.05);
+}
+.user-app-tab.active{
+  border-color:rgba(223,31,45,.62);
+  background:#df1f2d;
+  color:#fff;
+  box-shadow:0 12px 30px rgba(223,31,45,.22);
+}
+.user-app-refresh{
+  border-color:rgba(73,241,118,.38);
+  background:rgba(73,241,118,.1);
+  cursor:pointer;
+}
+.user-app-view[hidden]{
+  display:none !important;
+}
 .user-app-hero{
   max-width:760px;
-  padding:38px 0 28px;
+  padding:28px 0 24px;
 }
-.user-app-hero h1{
+.user-app-hero h1,.user-app-hero h2{
   margin:8px 0 14px;
   font-family:var(--font-display);
   font-size:clamp(58px,11vw,126px);
   line-height:.82;
   text-transform:uppercase;
+}
+.user-app-hero.compact h2{
+  font-size:clamp(52px,9vw,96px);
 }
 .user-app-hero p{
   max-width:650px;
@@ -1704,6 +1738,10 @@ body.modal-open{overflow:hidden;}
   line-height:1.55;
 }
 .user-help-card a{color:#fff;font-weight:900;}
+.user-help-card .btn{
+  margin-top:12px;
+  width:max-content;
+}
 .user-bookings-panel{
   margin-top:16px;
   padding:22px;
@@ -1809,15 +1847,17 @@ body.modal-open{overflow:hidden;}
 .app-action-card.muted{
   opacity:.74;
 }
-.user-gym-section{
-  margin-top:16px;
+.user-app-view{
+  margin-top:4px;
+}
+#teretana{
   border:1px solid rgba(255,255,255,.12);
   background:
     linear-gradient(135deg,rgba(73,241,118,.1),rgba(255,255,255,.035)),
     rgba(0,0,0,.14);
   padding:22px;
 }
-.user-gym-section .user-app-grid{
+#teretana .user-app-grid{
   margin-top:16px;
 }
 .gym-profile-panel{
@@ -2429,14 +2469,36 @@ body.modal-open{overflow:hidden;}
   .admin-create-form,.gym-member-form{grid-template-columns:1fr;}
   .admin-create-form .btn{width:100%;}
   .admin-filter,.admin-filter label,.admin-toolbar .btn{width:100%;}
-  .user-app-shell{width:min(100% - 22px,1080px);padding-top:14px;}
-  .user-app-header{padding-bottom:18px;}
+  .user-app-shell{width:min(100% - 22px,1080px);padding-top:0;}
+  .user-app-header{
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+  }
+  .user-app-header .logo{grid-column:1;}
+  .user-app-refresh{grid-column:2;min-height:38px;padding:0 12px;font-size:10px;}
+  .user-app-nav{
+    grid-column:1 / -1;
+    justify-content:flex-start;
+    overflow-x:auto;
+    padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  .user-app-nav::-webkit-scrollbar{display:none;}
+  .user-app-tab{
+    min-width:max-content;
+    min-height:40px;
+    padding:0 13px;
+    font-size:10px;
+  }
   .user-app-admin{min-height:38px;padding:0 12px;font-size:10px;}
   .user-app-hero{padding:22px 0 20px;}
   .user-app-grid,.user-app-actions,.install-steps-grid,.gym-demo-grid,.gym-demo-stats,.gym-flow-steps{grid-template-columns:1fr;}
   .gym-profile-grid{grid-template-columns:1fr;}
   .gym-profile-card.wide{grid-column:auto;}
-  .user-gym-section{padding:16px;}
+  #teretana{padding:16px;}
   .user-login-card,.user-help-card,.user-bookings-panel,.app-action-card,.install-guide,.gym-demo-card{padding:16px;}
   .demo-timeline{grid-template-columns:1fr;}
   .gym-demo-section-head{flex-direction:column;}
