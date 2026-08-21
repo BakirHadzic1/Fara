@@ -532,14 +532,18 @@ function initBookingModal() {
   }
 
   let modalOpening = false;
+  const inlineBooking = modal.dataset.bookingMode === 'inline';
 
   async function openModal() {
     if (modal.classList.contains('open') || modalOpening) return;
     modalOpening = true;
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('modal-open');
+    if (!inlineBooking) document.body.classList.add('modal-open');
     modal.querySelector('.booking-dialog').scrollTop = 0;
+    if (inlineBooking) {
+      modal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     message.textContent = 'Učitavam raspored...';
     message.classList.remove('error');
     try {
@@ -552,7 +556,7 @@ function initBookingModal() {
   function closeModal() {
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('modal-open');
+    if (!inlineBooking) document.body.classList.remove('modal-open');
   }
 
   document.querySelectorAll('.booking-trigger').forEach(button => {
@@ -566,7 +570,7 @@ function initBookingModal() {
   });
   modal.querySelectorAll('[data-booking-close]').forEach(button => button.addEventListener('click', closeModal));
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && modal.classList.contains('open')) closeModal();
+    if (!inlineBooking && event.key === 'Escape' && modal.classList.contains('open')) closeModal();
   });
   [dateInput, timeSelect, typeSelect, monthsSelect, categorySelect].forEach(input => input.addEventListener('change', updateSummary));
   prevWeek.addEventListener('click', () => {

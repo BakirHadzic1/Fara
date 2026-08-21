@@ -1660,6 +1660,46 @@ body.modal-open{overflow:hidden;}
 .user-app-view[hidden]{
   display:none !important;
 }
+.user-app-page .booking-modal[data-booking-mode="inline"]{
+  position:static;
+  inset:auto;
+  z-index:auto;
+  width:min(1080px,calc(100% - 32px));
+  margin:16px auto 52px;
+  padding:0;
+  align-items:stretch;
+  justify-content:stretch;
+}
+.user-app-page .booking-modal[data-booking-mode="inline"].open{
+  display:block;
+}
+.user-app-page .booking-modal[data-booking-mode="inline"] .booking-backdrop,
+.user-app-page .booking-modal[data-booking-mode="inline"] .booking-close{
+  display:none;
+}
+.user-app-page .booking-modal[data-booking-mode="inline"] .booking-dialog{
+  width:100%;
+  max-height:none;
+  overflow:visible;
+  background:rgba(255,255,255,.06);
+  color:#f7f7f3;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 24px 60px rgba(0,0,0,.22);
+}
+.user-app-page .booking-modal[data-booking-mode="inline"] .booking-shell{
+  background:rgba(255,255,255,.08);
+}
+.user-app-page .booking-modal[data-booking-mode="inline"] .booking-copy,
+.user-app-page .booking-modal[data-booking-mode="inline"] .booking-form{
+  background:#f7f6f1;
+}
+.user-app-page .booking-modal[data-booking-mode="inline"] .booking-copy{
+  background:#15191d;
+  color:#fff;
+}
+.user-app-page .booking-modal[data-booking-mode="inline"] .booking-copy p{
+  color:#cfd5d8;
+}
 .user-app-hero{
   max-width:760px;
   padding:28px 0 24px;
@@ -2316,6 +2356,14 @@ body.modal-open{overflow:hidden;}
   .map-panel iframe{min-height:280px;}
   .map-link{width:100%;}
   .booking-modal{padding:12px;}
+  .user-app-page .booking-modal[data-booking-mode="inline"]{
+    width:min(100% - 22px,1080px);
+    margin:12px auto 36px;
+    padding:0;
+  }
+  .user-app-page .booking-modal[data-booking-mode="inline"] .booking-dialog{
+    max-height:none;
+  }
   .booking-grid-2,.admin-stats{grid-template-columns:1fr;}
   .admin-sidebar{padding:12px;}
   .admin-brand{padding:10px 6px 6px;}
