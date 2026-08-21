@@ -8,8 +8,9 @@
   --dark-card:#171b20;
   --red:#df1f2d;
   --green:#1fd850;
+  --green-dark:#10923a;
   --yellow:#f2c94c;
-  --font-display:'Big Shoulders Display',Arial,sans-serif;
+  --font-display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
   --font-body:'Inter',Arial,sans-serif;
   --font-mono:'JetBrains Mono',monospace;
 }
@@ -34,7 +35,7 @@ button{cursor:pointer;}
   justify-content:space-between;
   gap:24px;
   padding:18px 28px;
-  background:rgba(247,244,239,.94);
+  background:linear-gradient(90deg,rgba(247,244,239,.97),rgba(237,247,239,.97));
   border-bottom:1px solid var(--line);
 }
 .brand{
@@ -74,14 +75,14 @@ button{cursor:pointer;}
   color:var(--ink);
 }
 .mode-tab.active{
-  border-color:var(--red);
-  background:var(--red);
-  color:#fff;
+  border-color:rgba(31,216,80,.7);
+  background:linear-gradient(135deg,var(--green),var(--green-dark));
+  color:#07150b;
 }
 .primary-btn{
-  border-color:var(--red);
-  background:var(--red);
-  color:#fff;
+  border-color:rgba(31,216,80,.75);
+  background:linear-gradient(135deg,var(--green),var(--green-dark));
+  color:#07150b;
 }
 
 .shell{padding:28px;}
@@ -105,10 +106,11 @@ button{cursor:pointer;}
 h1,h2{
   font-family:var(--font-display);
   text-transform:uppercase;
-  line-height:.95;
+  line-height:1;
+  letter-spacing:.01em;
 }
-h1{font-size:clamp(44px,6vw,76px);margin-top:10px;}
-h2{font-size:42px;}
+h1{font-size:clamp(42px,5.5vw,68px);margin-top:10px;}
+h2{font-size:38px;}
 p{color:var(--muted);}
 .login-panel p{margin-top:16px;font-size:18px;}
 .login-form{display:grid;gap:14px;}
@@ -129,7 +131,7 @@ input,select{
   padding:0 12px;
   outline:none;
 }
-input:focus,select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(223,31,45,.12);}
+input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(31,216,80,.18);}
 .message{min-height:20px;color:var(--red);font-weight:800;}
 
 .dashboard,.module-view{display:grid;gap:22px;}
