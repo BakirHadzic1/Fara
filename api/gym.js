@@ -170,6 +170,23 @@ function samePhone(left, right) {
   return Boolean(a && b && (a === b || a.endsWith(b) || b.endsWith(a)));
 }
 
+function normalizeLookupName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function memberLookupName(member) {
+  return normalizeLookupName(`${member.firstName || ''} ${member.lastName || ''}`);
+}
+
+function sameMemberName(member, value) {
+  return Boolean(memberLookupName(member) && memberLookupName(member) === normalizeLookupName(value));
+}
+
 function todayValue() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -238,11 +255,12 @@ module.exports = async function handler(req, res) {
       const url = new URL(req.url, 'https://www.fara.ba');
       if (url.searchParams.get('mine') === '1') {
         const phone = cleanText(url.searchParams.get('phone'), 40);
+        const name = cleanText(url.searchParams.get('name'), 120);
         const accessCode = cleanAccessCode(url.searchParams.get('code'));
-        if (!normalizePhone(phone)) return send(res, 400, { error: 'Unesite broj telefona.' });
+        if (!normalizeLookupName(name) && !normalizePhone(phone)) return send(res, 400, { error: 'Unesite ime i prezime.' });
         if (!accessCode) return send(res, 400, { error: 'Unesite kod za pristup.' });
-        const member = tenant.members.find(item => !item.deleted && samePhone(item.phone, phone) && cleanAccessCode(item.accessCode) === accessCode);
-        if (!member) return send(res, 404, { error: 'Član nije pronađen za uneseni broj i kod.' });
+        const member = tenant.members.find(item => !item.deleted && (normalizeLookupName(name) ? sameMemberName(item, name) : samePhone(item.phone, phone)) && cleanAccessCode(item.accessCode) === accessCode);
+        if (!member) return send(res, 404, { error: 'Član nije pronađen za uneseno ime i kod.' });
         return send(res, 200, { tenantId, owner: true, readonly, ...publicMemberProfile(tenant, member) });
       }
       if (!isAdmin(req)) return send(res, 401, { error: 'Potreban je admin PIN.' });

@@ -1,6 +1,6 @@
 const STORAGE_KEY = 'faraSportBookings';
 const MY_BOOKINGS_KEY = 'faraMyBookings';
-const USER_APP_PHONE_KEY = 'faraUserAppPhone';
+const USER_APP_NAME_KEY = 'faraUserAppName';
 const API_URL = '/api/bookings';
 const GYM_API_URL = '/api/gym';
 const GYM_TENANT_ID = 'fara-sport-centar';
@@ -44,6 +44,15 @@ function normalizePhone(value) {
   return digits;
 }
 
+function normalizeLookupName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
 function useOnlineApi() {
   return location.protocol === 'http:' || location.protocol === 'https:';
 }
@@ -79,13 +88,14 @@ async function loadBookings(adminPin = '') {
   }
 }
 
-async function loadUserBookings(phone, pin) {
+async function loadUserBookings(name, pin) {
   if (!useOnlineApi()) {
-    return localBookings().filter(item => normalizePhone(item.phone) === normalizePhone(phone) && String(item.userPin || '') === String(pin || ''));
+    const lookupName = normalizeLookupName(name);
+    return localBookings().filter(item => normalizeLookupName(item.name) === lookupName && String(item.userPin || '') === String(pin || ''));
   }
   const data = await requestBookings({
     method: 'GET',
-    url: `${API_URL}?mine=1&phone=${encodeURIComponent(phone)}&pin=${encodeURIComponent(pin)}`
+    url: `${API_URL}?mine=1&name=${encodeURIComponent(name)}&pin=${encodeURIComponent(pin)}`
   });
   return data.bookings || [];
 }
@@ -161,8 +171,8 @@ async function loadGym(adminPin) {
   return data.tenant || { membershipTypes: [], members: [], payments: [], visits: [], dailyPasses: [] };
 }
 
-async function loadGymMember(phone, code) {
-  const response = await fetch(`${GYM_API_URL}?mine=1&tenantId=${encodeURIComponent(GYM_TENANT_ID)}&phone=${encodeURIComponent(phone)}&code=${encodeURIComponent(code)}`);
+async function loadGymMember(name, code) {
+  const response = await fetch(`${GYM_API_URL}?mine=1&tenantId=${encodeURIComponent(GYM_TENANT_ID)}&name=${encodeURIComponent(name)}&code=${encodeURIComponent(code)}`);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Član nije pronađen.');
   return data;
@@ -655,21 +665,21 @@ function initUserApp() {
   const appSections = Array.from(document.querySelectorAll('[data-app-section]'));
   const appRefresh = document.getElementById('appRefresh');
   const form = document.getElementById('userAppLogin');
-  const phoneInput = document.getElementById('userAppPhone');
+  const nameInput = document.getElementById('userAppName');
   const pinInput = document.getElementById('userAppPin');
   const message = document.getElementById('userAppMessage');
   const panel = document.getElementById('userBookingsPanel');
   const list = document.getElementById('userBookingsList');
   const logout = document.getElementById('userAppLogout');
   const gymForm = document.getElementById('gymUserLogin');
-  const gymPhone = document.getElementById('gymUserPhone');
+  const gymName = document.getElementById('gymUserName');
   const gymCode = document.getElementById('gymUserCode');
   const gymMessage = document.getElementById('gymUserMessage');
   const gymPanel = document.getElementById('gymProfilePanel');
   const gymProfileName = document.getElementById('gymProfileName');
   const gymProfileGrid = document.getElementById('gymProfileGrid');
   const gymLogout = document.getElementById('gymUserLogout');
-  if (!form || !phoneInput || !pinInput || !message || !panel || !list) return;
+  if (!form || !nameInput || !pinInput || !message || !panel || !list) return;
 
   function showAppSection(sectionId, options = {}) {
     const id = appSections.some(section => section.dataset.appSection === sectionId) ? sectionId : 'termini';
@@ -709,8 +719,8 @@ function initUserApp() {
     if (!active.length) {
       list.innerHTML = `
         <article class="user-empty-card">
-          <strong>Nema aktivnih termina za ovaj broj.</strong>
-          <small>Provjerite da li je broj isti kao kod rezervacije ili otvorite raspored za novi termin.</small>
+          <strong>Nema aktivnih termina za ovo ime.</strong>
+          <small>Provjerite da li je ime isto kao kod rezervacije ili otvorite raspored za novi termin.</small>
           <a href="#rezervacija" class="btn btn-dark">Otvori raspored</a>
         </article>
       `;
@@ -739,11 +749,11 @@ function initUserApp() {
     }).join('');
   }
 
-  async function lookup(phone, pin) {
-    const cleanPhone = phone.trim();
+  async function lookup(name, pin) {
+    const cleanName = name.trim();
     const cleanPin = cleanUserPin(pin);
-    if (!normalizePhone(cleanPhone)) {
-      message.textContent = 'Unesite broj telefona.';
+    if (!normalizeLookupName(cleanName)) {
+      message.textContent = 'Unesite ime rezervacije.';
       message.classList.add('error');
       return;
     }
@@ -755,10 +765,10 @@ function initUserApp() {
     message.textContent = 'Učitavam vaše termine...';
     message.classList.remove('error');
     try {
-      const bookings = await loadUserBookings(cleanPhone, cleanPin);
-      localStorage.setItem(USER_APP_PHONE_KEY, cleanPhone);
+      const bookings = await loadUserBookings(cleanName, cleanPin);
+      localStorage.setItem(USER_APP_NAME_KEY, cleanName);
       renderUserBookings(bookings);
-      message.textContent = bookings.length ? 'Termini su učitani.' : 'Nema pronađenih termina za ovaj broj i PIN.';
+      message.textContent = bookings.length ? 'Termini su učitani.' : 'Nema pronađenih termina za ovo ime i PIN.';
     } catch (error) {
       message.textContent = error.message || 'Nije moguće učitati termine.';
       message.classList.add('error');
@@ -767,24 +777,24 @@ function initUserApp() {
 
   form.addEventListener('submit', event => {
     event.preventDefault();
-    lookup(phoneInput.value, pinInput.value);
+    lookup(nameInput.value, pinInput.value);
   });
 
   if (logout) {
     logout.addEventListener('click', () => {
-      localStorage.removeItem(USER_APP_PHONE_KEY);
-      phoneInput.value = '';
+      localStorage.removeItem(USER_APP_NAME_KEY);
+      nameInput.value = '';
       pinInput.value = '';
       panel.hidden = true;
       list.innerHTML = '';
-      message.textContent = 'Unesite drugi broj telefona i PIN.';
-      phoneInput.focus();
+      message.textContent = 'Unesite drugo ime i PIN.';
+      nameInput.focus();
     });
   }
 
-  const savedPhone = localStorage.getItem(USER_APP_PHONE_KEY) || '';
-  if (savedPhone) {
-    phoneInput.value = savedPhone;
+  const savedName = localStorage.getItem(USER_APP_NAME_KEY) || '';
+  if (savedName) {
+    nameInput.value = savedName;
   }
 
   function gymProfileStatus(member) {
@@ -828,13 +838,13 @@ function initUserApp() {
     gymPanel.hidden = false;
   }
 
-  if (gymForm && gymPhone && gymCode && gymMessage) {
+  if (gymForm && gymName && gymCode && gymMessage) {
     gymForm.addEventListener('submit', async event => {
       event.preventDefault();
-      const phone = gymPhone.value.trim();
+      const name = gymName.value.trim();
       const code = cleanUserPin(gymCode.value);
-      if (!normalizePhone(phone)) {
-        gymMessage.textContent = 'Unesite broj telefona.';
+      if (!normalizeLookupName(name)) {
+        gymMessage.textContent = 'Unesite ime i prezime.';
         gymMessage.classList.add('error');
         return;
       }
@@ -846,7 +856,7 @@ function initUserApp() {
       gymMessage.textContent = 'Učitavam profil...';
       gymMessage.classList.remove('error');
       try {
-        const data = await loadGymMember(phone, code);
+        const data = await loadGymMember(name, code);
         renderGymProfile(data);
         gymMessage.textContent = 'Profil je učitan.';
       } catch (error) {
@@ -857,25 +867,25 @@ function initUserApp() {
     });
   }
 
-  if (gymLogout && gymPhone && gymCode && gymMessage) {
+  if (gymLogout && gymName && gymCode && gymMessage) {
     gymLogout.addEventListener('click', () => {
-      gymPhone.value = '';
+      gymName.value = '';
       gymCode.value = '';
       if (gymPanel) gymPanel.hidden = true;
       if (gymProfileGrid) gymProfileGrid.innerHTML = '';
-      gymMessage.textContent = 'Unesite drugi broj telefona i kod.';
-      gymPhone.focus();
+      gymMessage.textContent = 'Unesite drugo ime i kod.';
+      gymName.focus();
     });
   }
 
   if (appRefresh) {
     appRefresh.addEventListener('click', () => {
       const active = appTabs.find(tab => tab.classList.contains('active'))?.dataset.appTab || 'termini';
-      if (active === 'termini' && phoneInput.value.trim() && cleanUserPin(pinInput.value)) {
-        lookup(phoneInput.value, pinInput.value);
+      if (active === 'termini' && nameInput.value.trim() && cleanUserPin(pinInput.value)) {
+        lookup(nameInput.value, pinInput.value);
         return;
       }
-      if (active === 'teretana' && gymPhone?.value.trim() && cleanUserPin(gymCode?.value)) {
+      if (active === 'teretana' && gymName?.value.trim() && cleanUserPin(gymCode?.value)) {
         gymForm?.requestSubmit();
         return;
       }

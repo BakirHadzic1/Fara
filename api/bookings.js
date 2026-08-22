@@ -225,6 +225,21 @@ function samePhone(left, right) {
   return normalizePhone(left) === normalizePhone(right);
 }
 
+function normalizeLookupName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function sameLookupName(left, right) {
+  const a = normalizeLookupName(left);
+  const b = normalizeLookupName(right);
+  return Boolean(a && b && a === b);
+}
+
 function cleanText(value) {
   return String(value || '').trim().slice(0, 500);
 }
@@ -390,14 +405,15 @@ module.exports = async function handler(req, res) {
       const url = new URL(req.url || '/', `https://${req.headers.host || 'www.fara.ba'}`);
       const mine = url.searchParams.get('mine') === '1';
       const phone = cleanText(url.searchParams.get('phone'));
+      const name = cleanText(url.searchParams.get('name'));
       const userPin = cleanPin(url.searchParams.get('pin'));
       const { bookings, readonly } = await readBookingsFile({ allowPublicFallback: true });
       const active = bookings.filter(item => item.status !== 'deleted');
       if (mine) {
-        if (!normalizePhone(phone)) return send(res, 400, { error: 'Unesite broj telefona.' });
+        if (!normalizeLookupName(name) && !normalizePhone(phone)) return send(res, 400, { error: 'Unesite ime rezervacije.' });
         if (!userPin) return send(res, 400, { error: 'Unesite PIN za pristup.' });
         const mineBookings = active
-          .filter(item => item.status !== 'cancelled' && samePhone(item.phone, phone))
+          .filter(item => item.status !== 'cancelled' && (normalizeLookupName(name) ? sameLookupName(item.name, name) : samePhone(item.phone, phone)))
           .filter(item => cleanPin(item.userPin) === userPin)
           .map(ownerBooking);
         return send(res, 200, { bookings: mineBookings, readonly, owner: true });
