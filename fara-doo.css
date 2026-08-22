@@ -1973,6 +1973,9 @@ body.modal-open{overflow:hidden;}
   font-size:17px;
   line-height:1.55;
 }
+.install-actions{
+  margin-bottom:18px;
+}
 .install-steps-grid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));

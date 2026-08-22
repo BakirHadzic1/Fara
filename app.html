@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FARA Sport Centar app — Moji termini</title>
-<meta name="description" content="FARA Sport Centar aplikacija za pregled svojih rezervisanih termina i brz ulaz u rezervaciju.">
+<title>FARA Sport Centar app — Instalacija i rezervacije</title>
+<meta name="description" content="FARA Sport Centar aplikacija za rezervaciju termina, pregled svojih termina i uputstvo za instalaciju na mobitel.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.fara.ba/app.html">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -16,8 +16,8 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="bs_BA">
 <meta property="og:site_name" content="FARA Sport Centar">
-<meta property="og:title" content="FARA Sport Centar app — Moji termini">
-<meta property="og:description" content="Prijavite se brojem telefona i pogledajte svoje termine u Fara Sport Centru.">
+<meta property="og:title" content="FARA Sport Centar app — Instalacija i rezervacije">
+<meta property="og:description" content="Dodajte FARA app na mobitel i rezervišite termine u Sport Centru.">
 <meta property="og:url" content="https://www.fara.ba/app.html">
 <meta property="og:image" content="https://www.fara.ba/files/hero-fara-sport-centar.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,14 +33,14 @@
       <span class="logo-text">FARA<span>.</span></span>
     </a>
     <nav class="user-app-nav" aria-label="FARA app navigacija">
+      <a href="#instalacija" class="user-app-tab" data-app-tab="instalacija">Instalacija</a>
       <a href="#termini" class="user-app-tab" data-app-tab="termini">Termini sala</a>
       <a href="#teretana" class="user-app-tab" data-app-tab="teretana">Teretana</a>
-      <a href="#instalacija" class="user-app-tab" data-app-tab="instalacija">Instalacija</a>
     </nav>
     <button class="user-app-refresh" type="button" id="appRefresh">Osvježi</button>
   </header>
 
-  <section class="user-app-view" id="termini" data-app-section="termini">
+  <section class="user-app-view" id="termini" data-app-section="termini" hidden>
     <section class="user-app-hero">
       <span class="section-eyebrow">Sala</span>
       <h1>Termini</h1>
@@ -121,11 +121,24 @@
     </section>
   </section>
 
-  <section class="user-app-view install-guide" id="instalacija" data-app-section="instalacija" hidden>
+  <section class="user-app-view install-guide" id="instalacija" data-app-section="instalacija">
     <div class="install-guide-head">
-      <span class="section-eyebrow">Instalacija</span>
-      <h2>Dodaj FARA app na mobitel</h2>
-      <p>Otvorite ovu stranicu na telefonu i dodajte je na početni ekran. Ikona ostaje na mobitelu i otvara app direktno na termine.</p>
+      <span class="section-eyebrow">FARA app</span>
+      <h2>Rezervacije termina sada online</h2>
+      <p>Otvorite ovu stranicu na telefonu i dodajte FARA app na početni ekran. Nakon toga jednim klikom možete otvoriti raspored, rezervisati termin i provjeriti svoje rezervacije.</p>
+    </div>
+
+    <div class="user-app-actions install-actions">
+      <a class="app-action-card" href="#termini">
+        <span>01</span>
+        <strong>Otvori termine</strong>
+        <small>Pregled rasporeda i online rezervacija sale.</small>
+      </a>
+      <a class="app-action-card" href="#rezervacija">
+        <span>02</span>
+        <strong>Rezerviši odmah</strong>
+        <small>Izaberite slobodan dan i sat u rasporedu.</small>
+      </a>
     </div>
 
     <div class="install-steps-grid">

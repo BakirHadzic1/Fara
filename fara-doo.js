@@ -661,6 +661,7 @@ function initBookingModal() {
 }
 
 function initUserApp() {
+  const defaultAppSection = 'instalacija';
   const appTabs = Array.from(document.querySelectorAll('[data-app-tab]'));
   const appSections = Array.from(document.querySelectorAll('[data-app-section]'));
   const appRefresh = document.getElementById('appRefresh');
@@ -682,7 +683,7 @@ function initUserApp() {
   if (!form || !nameInput || !pinInput || !message || !panel || !list) return;
 
   function showAppSection(sectionId, options = {}) {
-    const id = appSections.some(section => section.dataset.appSection === sectionId) ? sectionId : 'termini';
+    const id = appSections.some(section => section.dataset.appSection === sectionId) ? sectionId : defaultAppSection;
     appSections.forEach(section => {
       section.hidden = section.dataset.appSection !== id;
     });
@@ -702,7 +703,7 @@ function initUserApp() {
   });
 
   window.addEventListener('hashchange', () => {
-    showAppSection((window.location.hash || '#termini').replace('#', ''), { updateHash: false });
+    showAppSection((window.location.hash || `#${defaultAppSection}`).replace('#', ''), { updateHash: false });
   });
 
   function activeOwnerBookings(bookings) {
@@ -880,7 +881,7 @@ function initUserApp() {
 
   if (appRefresh) {
     appRefresh.addEventListener('click', () => {
-      const active = appTabs.find(tab => tab.classList.contains('active'))?.dataset.appTab || 'termini';
+      const active = appTabs.find(tab => tab.classList.contains('active'))?.dataset.appTab || defaultAppSection;
       if (active === 'termini' && nameInput.value.trim() && cleanUserPin(pinInput.value)) {
         lookup(nameInput.value, pinInput.value);
         return;
@@ -893,7 +894,7 @@ function initUserApp() {
     });
   }
 
-  showAppSection((window.location.hash || '#termini').replace('#', ''), { updateHash: false });
+  showAppSection((window.location.hash || `#${defaultAppSection}`).replace('#', ''), { updateHash: false });
 }
 
 function initAdminPanel() {
